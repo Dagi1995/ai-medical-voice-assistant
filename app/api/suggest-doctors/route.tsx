@@ -1,4 +1,5 @@
-import { openai } from "@/app/config/OpenAiModel";
+import { openai } from "@/config/OpenAiModel";
+import { AIDoctorAgents } from "@/app/shared/list";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
