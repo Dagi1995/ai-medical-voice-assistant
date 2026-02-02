@@ -20,6 +20,7 @@ import SuggestedDoctorCard from "./SuggestedDoctorCard";
 function AddNewSessionDialog() {
   const [note, setNote] = useState<string>("");
   const [loading, setLoading] = useState(false);
+  const [selectedDoctor, setSelectedDoctor] = useState<doctorAgent>();
   const [suggstedDoctors, setSuggstedDoctors] = useState<
     doctorAgent[] | undefined
   >();
@@ -75,6 +76,18 @@ function AddNewSessionDialog() {
       setLoading(false);
     }
   };
+  const onStartConsultation = async () => {
+    setLoading(true);
+    const result = await axios.post("/api/session-chat", {
+      notes: note,
+      selectedDoctor: selectedDoctor,
+    });
+    console.log("New Session Created:", result.data);
+    if (result.data?.sessionId) {
+      console.log("Session ID:", result.data.sessionId);
+    }
+    setLoading(false);
+  };
 
   return (
     <Dialog>
@@ -95,13 +108,19 @@ function AddNewSessionDialog() {
                 />
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-5">
-                {suggstedDoctors.map((doctor, index) => (
-                  <SuggestedDoctorCard
-                    doctorAgent={doctor}
-                    key={index}
-                  ></SuggestedDoctorCard>
-                ))}
+              <div>
+                <h2>Select The Doctor</h2>
+                <div className="grid grid-cols-2 gap-5">
+                  {suggstedDoctors.map((doctor, index) => (
+                    <SuggestedDoctorCard
+                      doctorAgent={doctor}
+                      key={index}
+                      setSelectedDoctor={() => setSelectedDoctor(doctor)}
+                      //@ts-ignore
+                      selectedDoctor={selectedDoctor}
+                    ></SuggestedDoctorCard>
+                  ))}
+                </div>
               </div>
             )}
           </DialogDescription>
@@ -115,7 +134,12 @@ function AddNewSessionDialog() {
               {loading ? "Loading..." : "Next"} <ArrowRight />
             </Button>
           ) : (
-            <Button>Start Consultation</Button>
+            <Button
+              onClick={() => onStartConsultation()}
+              disabled={!selectedDoctor || loading}
+            >
+              Start Consultation
+            </Button>
           )}
         </DialogFooter>
       </DialogContent>

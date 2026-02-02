@@ -1,14 +1,26 @@
 import React from "react";
 import { doctorAgent } from "./DoctorAgentCard";
 import Image from "next/image";
+import { sessionsChatTable } from "../../../../config/schema";
 
 type Props = {
   doctorAgent: doctorAgent;
+  setSelectedDoctor: any;
+  selectedDoctor: doctorAgent;
 };
 
-function SuggestedDoctorCard({ doctorAgent }: Props) {
+function SuggestedDoctorCard({
+  doctorAgent,
+  setSelectedDoctor,
+  selectedDoctor,
+}: Props) {
   return (
-    <div className="flex flex-col items-center border rounded-2xl shadow ">
+    <div
+className={`flex flex-col items-center border rounded-2xl shadow hover:shadow-lime-600 cursor-pointer ${
+  selectedDoctor?.id === doctorAgent.id ? "border-lime-600" : ""
+}`}
+      onClick={() => setSelectedDoctor(doctorAgent)}
+    >
       <Image
         src={doctorAgent.image}
         alt={doctorAgent.specialty || "Doctor image"}

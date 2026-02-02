@@ -125,8 +125,12 @@ const Navbar = () => {
         ) : (
           <div className="flex gap-5 items-center">
             <UserButton />
-            <Button variant={"default"}>Dashboard</Button>
-          </div>
+            <Link href="/dashboard">
+              <Button variant={"default"}>
+                Dashboard
+              </Button>
+            </Link>
+          </div>   
         )}
       </div>
     </nav>
