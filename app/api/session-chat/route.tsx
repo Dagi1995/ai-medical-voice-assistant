@@ -24,3 +24,16 @@ export async function POST(req: NextRequest) {
     NextResponse.json(e);
   }
 }
+
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
+  const sessionId = searchParams.get("sessionId");
+  const user = await currentUser();
+
+  const result = await db
+    .select()
+    .from(sessionsChatTable)
+    //@ts-ignore
+    .where(sessionsChatTable.sessionId === sessionId);
+  return NextResponse.json(result[0]);
+}

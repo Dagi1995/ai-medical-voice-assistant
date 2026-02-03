@@ -17,6 +17,7 @@ import { ArrowRight } from "lucide-react";
 import { useState } from "react";
 import DoctorAgentCard, { doctorAgent } from "./DoctorAgentCard";
 import SuggestedDoctorCard from "./SuggestedDoctorCard";
+import { useRouter } from "next/navigation";
 function AddNewSessionDialog() {
   const [note, setNote] = useState<string>("");
   const [loading, setLoading] = useState(false);
@@ -24,7 +25,7 @@ function AddNewSessionDialog() {
   const [suggstedDoctors, setSuggstedDoctors] = useState<
     doctorAgent[] | undefined
   >();
-
+  const router = useRouter();
   const OnclickNext = async () => {
     setLoading(true);
 
@@ -85,6 +86,7 @@ function AddNewSessionDialog() {
     console.log("New Session Created:", result.data);
     if (result.data?.sessionId) {
       console.log("Session ID:", result.data.sessionId);
+      router.push("/dashboard/medical-agent/" + result.data.sessionId);
     }
     setLoading(false);
   };
