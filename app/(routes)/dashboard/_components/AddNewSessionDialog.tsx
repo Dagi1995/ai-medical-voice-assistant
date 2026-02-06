@@ -117,10 +117,9 @@ function AddNewSessionDialog() {
                     <SuggestedDoctorCard
                       doctorAgent={doctor}
                       key={index}
-                      setSelectedDoctor={() => setSelectedDoctor(doctor)}
-                      //@ts-ignore
-                      selectedDoctor={selectedDoctor}
-                    ></SuggestedDoctorCard>
+                      selectedDoctor={selectedDoctor || null} // pass null if nothing is selected
+                      setSelectedDoctor={setSelectedDoctor} // pass state updater directly
+                    />
                   ))}
                 </div>
               </div>

@@ -15,10 +15,12 @@ function SuggestedDoctorCard({
 }: Props) {
   return (
     <div
-      className={`flex flex-col items-center border rounded-2xl shadow hover:shadow-lime-600 cursor-pointer ${
-        selectedDoctor?.id === doctorAgent.id ? "border-lime-600" : ""
+      className={`flex flex-col items-center border rounded-2xl shadow hover:shadow-lime-600 cursor-pointer p-4 transition ${
+        selectedDoctor?.id === doctorAgent.id
+          ? "border-lime-600"
+          : "border-transparent"
       }`}
-      onClick={() => setSelectedDoctor(doctorAgent)}
+      onClick={() => setSelectedDoctor(doctorAgent)} // now it properly sets state
     >
       {doctorAgent.image && (
         <Image
@@ -26,7 +28,7 @@ function SuggestedDoctorCard({
           alt={doctorAgent.specialty || "Doctor image"}
           width={70}
           height={70}
-          className="w-[50px] h-[50px] object-cover rounded-full"
+          className="w-[50px] h-[50px] object-cover rounded-full mb-2"
         />
       )}
 

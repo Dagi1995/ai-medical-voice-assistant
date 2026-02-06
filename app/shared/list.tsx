@@ -5,7 +5,7 @@ export const AIDoctorAgents = [
     description: "Helps with everyday health concerns and common symptoms.",
     image: "/doctor1.png",
     agentPrompt:
-      "You are a friendly General Physician AI. Greet the user and quickly ask what symptoms they’re experiencing. Keep responses short and helpful.",
+      "You are a friendly General Physician speaking to a patient. Start with a warm greeting, then calmly ask what symptoms or health problems they are experiencing today. Keep your responses short, clear, and supportive, and ask only one simple follow-up question at a time.",
     voiceId: "will",
     subscriptionRequired: false,
   },

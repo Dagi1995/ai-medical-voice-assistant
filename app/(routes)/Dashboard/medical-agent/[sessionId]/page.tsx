@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { doctorAgent } from "../../_components/DoctorAgentCard";
 import { Circle, PhoneCall, PhoneOff } from "lucide-react";
@@ -26,20 +26,36 @@ type messages = {
 function MedicalVoiceAgent() {
   const { sessionId } = useParams();
 
-  const [sessionDetail, setSessionDetail] = useState<SessionDetail>();
+  const [sessionDetail, setSessionDetail] = useState<SessionDetail | null>(
+    null
+  );
   const [callStarted, setCallStarted] = useState(false);
   const [vapiInstance, setVapiInstance] = useState<any>(null);
   const [currentRole, setCurrentRole] = useState<string | null>(null);
   const [liveTranscript, setLiveTranscript] = useState<string>("");
   const [messages, setMessages] = useState<messages[]>([]);
 
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Auto scroll
   useEffect(() => {
-    sessionId && GetSessionDetails();
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, liveTranscript]);
+
+  useEffect(() => {
+    if (sessionId) GetSessionDetails();
   }, [sessionId]);
 
   const GetSessionDetails = async () => {
-    const result = await axios.get("/api/session-chat?sessionId=" + sessionId);
-    setSessionDetail(result.data);
+    try {
+      const result = await axios.get(
+        "/api/session-chat?sessionId=" + sessionId
+      );
+      if (result?.data) setSessionDetail(result.data);
+    } catch (error) {
+      console.error("Failed to fetch session details:", error);
+      setSessionDetail(null);
+    }
   };
 
   const StartCall = () => {
@@ -48,48 +64,45 @@ function MedicalVoiceAgent() {
 
     vapi.start(process.env.NEXT_PUBLIC_VAPI_VOICE_ASSISTANT_ID!);
 
-    vapi.on("call-start", () => {
-      setCallStarted(true);
-    });
+    // ✅ Call lifecycle events
+    vapi.on("call-start", () => setCallStarted(true));
+    vapi.on("call-end", () => setCallStarted(false));
 
-    vapi.on("call-end", () => {
-      setCallStarted(false);
-    });
-
+    // ✅ Message safely
     vapi.on("message", (message: any) => {
-      if (message.type === "transcript") {
-        const { role, transcriptType, transcript } = message;
+      if (!message || message.type !== "transcript") return;
 
-        if (transcriptType === "partial") {
-          setLiveTranscript(transcript);
-          setCurrentRole(role);
-        } else if (transcriptType === "final") {
-          setMessages((prev) => [...prev, { role, text: transcript }]);
-          setLiveTranscript("");
-          setCurrentRole(null);
-        }
+      const { role, transcriptType, transcript } = message;
+      if (!role || !transcript) return;
+
+      if (transcriptType === "partial") {
+        setLiveTranscript(transcript);
+        setCurrentRole(role);
+      } else if (transcriptType === "final") {
+        setMessages((prev) => [...prev, { role, text: transcript }]);
+        setLiveTranscript("");
+        setCurrentRole(null);
       }
     });
 
-    // 🔧 FIX: use `vapi`, not `vapiInstance`
-    vapi.on("speech-start", () => {
-      setCurrentRole("assistant");
-    });
-
-    vapi.on("speech-end", () => {
-      setCurrentRole("user");
-    });
+    vapi.on("speech-start", () => setCurrentRole("assistant"));
+    vapi.on("speech-end", () => setCurrentRole("user"));
   };
 
   const endCall = () => {
     if (!vapiInstance) return;
 
-    vapiInstance.stop();
-    vapiInstance.off("call-start");
-    vapiInstance.off("call-end");
-    vapiInstance.off("message"); // 🔧 FIXED EVENT NAME
-    vapiInstance.off("speech-start");
-    vapiInstance.off("speech-end");
+    try {
+      vapiInstance.stop(); // Stops call
+      // Clean up listeners
+      vapiInstance.off("call-start");
+      vapiInstance.off("call-end");
+      vapiInstance.off("message");
+      vapiInstance.off("speech-start");
+      vapiInstance.off("speech-end");
+    } catch (error) {
+      console.warn("Error stopping Vapi call:", error);
+    }
 
     setCallStarted(false);
     setVapiInstance(null);
@@ -100,16 +113,15 @@ function MedicalVoiceAgent() {
       <div className="flex justify-between items-center">
         <h2 className="p-1 px-2 border rounded-md flex gap-2 items-center">
           <Circle
-            className={`h-4 w-4 rounded-full ${
-              callStarted ? "bg-green-500" : "bg-red-500"
-            }`}
+            className={`h-4 w-4 rounded-full ${callStarted ? "bg-green-500" : "bg-red-500"}`}
           />
           {callStarted ? "Connected..." : "Not Connected"}
         </h2>
         <h2 className="font-bold text-xl text-gray-400">00:00</h2>
       </div>
 
-      {sessionDetail?.selectedDoctor?.image && (
+      {/* Doctor image */}
+      {sessionDetail?.selectedDoctor?.image ? (
         <div className="flex items-center flex-col mt-10">
           <Image
             src={sessionDetail.selectedDoctor.image}
@@ -119,25 +131,51 @@ function MedicalVoiceAgent() {
             className="w-[80px] h-[80px] object-cover rounded-full mt-4"
           />
         </div>
+      ) : (
+        <div className="w-20 h-20 bg-gray-100 rounded-full mt-10" />
       )}
 
       <div className="items-center justify-between flex-col flex mt-4">
         <h2 className="text-lg font-semibold mt-4">
-          {sessionDetail?.selectedDoctor?.specialty}
+          {sessionDetail?.selectedDoctor?.specialty || "General Physician"}
         </h2>
         <p className="text-sm text-gray-400">AI Medical Voice Agent</p>
 
-        <div className="mt-12 overflow-y-auto flex flex-col items-center px-10 md:px-28 lg:px-52 xl:px-72">
-          {messages.slice(-4).map((msg, index) => (
-            <h2 className="text-gray-400 p-2" key={index}>
-              {msg.role}: {msg.text}
-            </h2>
+        {/* Messages */}
+        <div className="mt-12 max-h-[300px] overflow-y-auto flex flex-col gap-3 px-4 md:px-20 lg:px-40 xl:px-56">
+          {messages.slice(-6).map((msg, index) => (
+            <div
+              key={index}
+              className={`max-w-[75%] px-4 py-2 rounded-2xl text-sm leading-relaxed shadow-sm ${
+                msg.role === "assistant"
+                  ? "self-start bg-blue-50 text-blue-900"
+                  : "self-end bg-green-50 text-green-900"
+              }`}
+            >
+              <p className="font-medium mb-1 capitalize opacity-70">
+                {msg.role}
+              </p>
+              <p>{msg.text}</p>
+            </div>
           ))}
+
           {liveTranscript && (
-            <h2 className="text-lg">
-              {currentRole}: {liveTranscript}
-            </h2>
+            <div
+              className={`max-w-[75%] px-4 py-2 rounded-2xl text-sm italic animate-pulse ${
+                currentRole === "assistant"
+                  ? "self-start bg-blue-100 text-blue-900"
+                  : "self-end bg-green-100 text-green-900"
+              }`}
+            >
+              <p className="font-medium mb-1 opacity-70">
+                {currentRole === "assistant"
+                  ? "Assistant (speaking)"
+                  : "You (speaking)"}
+              </p>
+              <p>{liveTranscript}</p>
+            </div>
           )}
+          <div ref={messagesEndRef} />
         </div>
 
         {!callStarted ? (
