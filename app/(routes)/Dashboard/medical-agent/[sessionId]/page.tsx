@@ -10,6 +10,10 @@ import { Button } from "@/components/ui/button";
 
 import Vapi from '@vapi-ai/web';
 
+import { Circle, PhoneCall } from "lucide-react";
+import Image from "next/image";
+import { Button } from "@/components/ui/button";
+
 type SessionDetail = {
   id: number;
   notes: string;
@@ -32,6 +36,10 @@ function MedicalVoiceAgent() {
   const [currentRole,setCurrentRole] = useState<string|null>()
   const [liveTranscript,setLiveTranscript] = useState<string>()
   const [messages,setMessages] = useState<messages[]>([])
+=======
+function MedicalVoiceAgent() {
+  const { sessionId } = useParams();
+  const [sessionDetail, setSessionDetail] = useState<SessionDetail>();
   useEffect(() => {
     sessionId && GetSessionDetails();
   }, [sessionId]);
@@ -88,11 +96,15 @@ function MedicalVoiceAgent() {
     setVapiInstance(null)
   };
 
+
   return (
     <div className="p-10  border rounded-3xl">
       <div className=" flex justify-between items-center">
         <h2 className="p-1 px-2 border rounded-md flex gap-2 items-center">
           <Circle className={`h-4 w-4 rounded-full ${callStarted?'bg-green-500':'bg-red-500'}`}></Circle>{callStarted?"Connected..." : "Not Connected"}
+
+          <Circle className="h-4 w-4"></Circle> Not Connectedf
+ main
         </h2>
         <h2 className="font-bold text-xl text-gray-400">00:00</h2>
       </div>
@@ -124,6 +136,14 @@ function MedicalVoiceAgent() {
         </Button>
         : <Button variant={"destructive"} onClick={endCall}> <PhoneOff/> Disconnect </Button>
         }
+
+        <div className="mt-32">
+          <h2 className="text-gray-400">Assistant msg</h2>
+          <h2 className="text-lg"> User msg</h2>
+        </div>
+        <Button className="mt-20">
+          <PhoneCall></PhoneCall> Start Call
+        </Button>
       </div>
     </div>
   );
