@@ -42,3 +42,6 @@ test-results/
 # Optional: temporary files
 .tmp/
 temp/
+
+# clerk configuration (can include secrets)
+/.clerk/
