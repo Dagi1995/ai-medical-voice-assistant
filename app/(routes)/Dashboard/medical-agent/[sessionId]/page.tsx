@@ -1,13 +1,14 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { doctorAgent } from "../../_components/DoctorAgentCard";
-import { Circle, PhoneCall, PhoneOff } from "lucide-react";
+import { Circle, Languages, Loader, PhoneCall, PhoneOff } from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import Vapi from "@vapi-ai/web";
+import { toast } from "sonner";
 
 type SessionDetail = {
   id: number;
@@ -34,6 +35,8 @@ function MedicalVoiceAgent() {
   const [currentRole, setCurrentRole] = useState<string | null>(null);
   const [liveTranscript, setLiveTranscript] = useState<string>("");
   const [messages, setMessages] = useState<messages[]>([]);
+  const [loading, setLoading] = useState(false);
+  const route = useRouter();
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -59,10 +62,37 @@ function MedicalVoiceAgent() {
   };
 
   const StartCall = () => {
+    setLoading(true);
     const vapi = new Vapi(process.env.NEXT_PUBLIC_VAPI_API_KEY!);
     setVapiInstance(vapi);
 
-    vapi.start(process.env.NEXT_PUBLIC_VAPI_VOICE_ASSISTANT_ID!);
+    const VapiAgentConfig = {
+      name: "AI Medical Doctor Voice Agent",
+      firstMessage:
+        "Hi there! I'm your AI medical assistant. I'm here to help you with any health-related questions or concerns you may have. How can I assist you today?",
+      transcriber: {
+        provider: "assembly-ai",
+        Language: "en",
+      },
+      voice: {
+        provider: "playht",
+        voiceId: sessionDetail?.selectedDoctor?.VoiceId,
+      },
+      model: {
+        provider: "openai",
+        model: "gpt-4",
+        messages: [
+          {
+            role: "system",
+            content:
+              sessionDetail?.selectedDoctor?.agentPrompt ||
+              "You are a helpful and precise medical assistant for patients. Always try to answer as concisely as possible. If you don't know the answer, say you don't know. Always use all the information from the patient to answer. If the patient provides some information about their symptoms or condition, ask relevant follow-up questions to gather more details before providing a response.",
+          },
+        ],
+      },
+    };
+    // @ts-ignore
+    vapi.start(VapiAgentConfig);
 
     // ✅ Call lifecycle events
     vapi.on("call-start", () => setCallStarted(true));
@@ -89,7 +119,8 @@ function MedicalVoiceAgent() {
     vapi.on("speech-end", () => setCurrentRole("user"));
   };
 
-  const endCall = () => {
+  const endCall = async () => {
+    setLoading(true);
     if (!vapiInstance) return;
 
     try {
@@ -106,8 +137,25 @@ function MedicalVoiceAgent() {
 
     setCallStarted(false);
     setVapiInstance(null);
+    toast.success("Your report is generated");
+
+    route.replace("/dashboard");
+
+    const result = await GenerateReport();
+    setLoading(false);
   };
 
+  const GenerateReport = async () => {
+    setLoading(true);
+    const result = await axios.post("/api/medical-report", {
+      messages: messages,
+      sessionDetail: sessionDetail,
+      sessionId: sessionId,
+    });
+
+    console.log(result.data);
+    return result.data;
+  };
   return (
     <div className="p-10 border rounded-3xl">
       <div className="flex justify-between items-center">
@@ -180,11 +228,13 @@ function MedicalVoiceAgent() {
 
         {!callStarted ? (
           <Button className="mt-20" onClick={StartCall}>
-            <PhoneCall /> Start Call
+            {loading ? <Loader className="animate-spin" /> : <PhoneCall />}{" "}
+            Start Call
           </Button>
         ) : (
           <Button variant="destructive" onClick={endCall}>
-            <PhoneOff /> Disconnect
+            {loading ? <Loader className="animate-spin" /> : <PhoneOff />}
+            Disconnect
           </Button>
         )}
       </div>
