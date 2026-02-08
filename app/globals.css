@@ -120,3 +120,25 @@
     @apply bg-background text-foreground;
   }
 }
+
+.inverted {
+	clip-path: path("M20,0H30A10,10 0,0,1 40,10V20A10,10 0,0,0 50,30H90A10,10 0,0,1 100,40V90A10,10 0,0,1 90,100H30A10,10 0,0,1 20,90V90A10,10 0,0,0 10,80H10A10,10 0,0,1 0,70V20A20,20 0,0,1 20,0Z");
+	width: 100px;
+	height: 100px;
+	background-color: #513D34;
+	aspect-ratio: 1 / 1;
+}
+
+/* ADD THIS NEW CLASS FOR YOUR FEATURE CARD */
+.feature-card-clip {
+  clip-path: path("M14.4,0H208.8A14.4,14.4 0,0,1 223.2,14.4V28.8A14.4,14.4 0,0,0 237.6,43.2H288A14.4,14.4 0,0,1 302.4,57.6V134.4A14.4,14.4 0,0,1 288,148.8H79.2A14.4,14.4 0,0,1 64.8,134.4V120A14.4,14.4 0,0,0 50.4,105.6H50.4A14.4,14.4 0,0,1 36,91.2V28.8A28.8,28.8 0,0,1 64.8,0Z");
+  width: 288px;  /* w-72 = 288px */
+  height: 148.8px; /* Adjusted for content */
+}
+
+/* Optional: Add a responsive version */
+@layer utilities {
+  .clip-feature-card {
+    clip-path: path("M14.4,0H208.8A14.4,14.4 0,0,1 223.2,14.4V28.8A14.4,14.4 0,0,0 237.6,43.2H288A14.4,14.4 0,0,1 302.4,57.6V134.4A14.4,14.4 0,0,1 288,148.8H79.2A14.4,14.4 0,0,1 64.8,134.4V120A14.4,14.4 0,0,0 50.4,105.6H50.4A14.4,14.4 0,0,1 36,91.2V28.8A28.8,28.8 0,0,1 64.8,0Z");
+  }
+}
