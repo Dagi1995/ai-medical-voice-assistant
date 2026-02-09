@@ -72,15 +72,15 @@ function MedicalVoiceAgent() {
         "Hi there! I'm your AI medical assistant. I'm here to help you with any health-related questions or concerns you may have. How can I assist you today?",
       transcriber: {
         provider: "assembly-ai",
-        Language: "en",
+        language: "en",
       },
       voice: {
-        provider: "playht",
+        provider: "azure",
         voiceId: sessionDetail?.selectedDoctor?.VoiceId,
       },
       model: {
         provider: "openai",
-        model: "gpt-4",
+        model: "gpt-4.1",
         messages: [
           {
             role: "system",

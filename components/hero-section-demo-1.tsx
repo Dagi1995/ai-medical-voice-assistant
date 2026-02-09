@@ -1,12 +1,6 @@
 "use client";
 
- boni-new-work
- HEAD
-
 import { motion } from "framer-motion";
- main
-import { motion } from "motion/react";
-56a2e57d2bba78adfda30e8175ef78251ac25d7a
 
 export default function HeroSectionOne() {
   return (

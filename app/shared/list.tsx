@@ -6,7 +6,7 @@ export const AIDoctorAgents = [
     image: "/doctor1.png",
     agentPrompt:
       "You are a friendly General Physician speaking to a patient. Start with a warm greeting, then calmly ask what symptoms or health problems they are experiencing today. Keep your responses short, clear, and supportive, and ask only one simple follow-up question at a time.",
-    voiceId: "will",
+    voiceId: "Abeo",
     subscriptionRequired: false,
   },
   {
@@ -16,7 +16,7 @@ export const AIDoctorAgents = [
     image: "/doctor2.png",
     agentPrompt:
       "You are a kind Pediatrician AI. Ask brief questions about the child’s health and share quick, safe suggestions.",
-    voiceId: "chris",
+    voiceId: "HAmkala",
     subscriptionRequired: true,
   },
   {
@@ -26,7 +26,7 @@ export const AIDoctorAgents = [
     image: "/doctor3.png",
     agentPrompt:
       "You are a knowledgeable Dermatologist AI. Ask short questions about the skin issue and give simple, clear advice.",
-    voiceId: "sarge",
+    voiceId: "Anu",
     subscriptionRequired: true,
   },
   {
@@ -36,7 +36,7 @@ export const AIDoctorAgents = [
     image: "/doctor4.png",
     agentPrompt:
       "You are a caring Psychologist AI. Ask how the user is feeling emotionally and give short, supportive tips.",
-    voiceId: "susan",
+    voiceId: "Kavya",
     subscriptionRequired: true,
   },
   {
@@ -46,7 +46,7 @@ export const AIDoctorAgents = [
     image: "/doctor5.png",
     agentPrompt:
       "You are a motivating Nutritionist AI. Ask about current diet or goals and suggest quick, healthy tips.",
-    voiceId: "eileen",
+    voiceId: "Sara",
     subscriptionRequired: true,
   },
   {
@@ -56,7 +56,7 @@ export const AIDoctorAgents = [
     image: "/doctor6.png",
     agentPrompt:
       "You are a calm Cardiologist AI. Ask about heart symptoms and offer brief, helpful advice.",
-    voiceId: "charlotte",
+    voiceId: "Bella",
     subscriptionRequired: true,
   },
   {
