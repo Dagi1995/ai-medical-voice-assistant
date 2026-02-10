@@ -8,12 +8,12 @@ const menuOptions = [
     {
         id:1,
         name:"Home",
-        path:"/home"
+        path:"/dashboard"
     },
     {
         id:2,
         name:"History",
-        path:"/history"
+        path:"/dashboard/history"
     },
     {
         id:3,
@@ -32,9 +32,9 @@ function AppHeader() {
       <Image src={"/logo.svg"} alt="App Logo" width={40} height={20} />
       <div className='w-full h-16 hidden md:flex items-center justify-center gap-12'  >
         {menuOptions.map((option, index) => (
-            <div key={index}>
+            <Link key={index} href={option.path}>
                 <h2 className='cursor-pointer transition duration-300 hover:-translate-y-1 hover:font-bold'> {option.name}</h2>
-                </div> 
+                </Link> 
         ))}
       </div>
     </div>
