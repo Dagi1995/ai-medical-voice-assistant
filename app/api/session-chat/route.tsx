@@ -1,4 +1,4 @@
-import { db } from "@/config/db";
+ import { db } from "@/config/db";
 import { sessionsChatTable } from "@/config/schema";
 import { currentUser } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
@@ -38,13 +38,26 @@ export async function GET(req: NextRequest) {
     const sessionId = searchParams.get("sessionId");
     if (!sessionId) return NextResponse.json(null);
 
-    const result = await db
+    if(sessionId=='all') 
+      {
+        const result = await db
+      .select()
+      .from(sessionsChatTable)
+      .where(eq(sessionsChatTable.createdBy, user?.primaryEmailAddress?.emailAddress));
+      .orderBy(desc(sessionsChatTable.id));
+
+    return NextResponse.json(result[0] || null);
+      } 
+      else{
+         const result = await db
       .select()
       .from(sessionsChatTable)
       .where(eq(sessionsChatTable.sessionId, sessionId));
 
     return NextResponse.json(result[0] || null);
-  } catch (e) {
+      }
+  } 
+  catch (e) {
     console.error("Failed to fetch session:", e);
     return NextResponse.json(
       { error: "Failed to fetch session" },
