@@ -4,7 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { doctorAgent } from "../../_components/DoctorAgentCard";
-import { Circle, Languages, Loader, PhoneCall, PhoneOff } from "lucide-react";
+import { Circle, Loader, PhoneCall, PhoneOff } from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import Vapi from "@vapi-ai/web";
@@ -19,26 +19,29 @@ type SessionDetail = {
   createdOn: string;
 };
 
-type messages = {
+type Message = {
   role: string;
   text: string;
 };
 
 function MedicalVoiceAgent() {
   const { sessionId } = useParams();
+  const route = useRouter();
 
   const [sessionDetail, setSessionDetail] = useState<SessionDetail | null>(
     null
   );
   const [callStarted, setCallStarted] = useState(false);
-  const [vapiInstance, setVapiInstance] = useState<any>(null);
   const [currentRole, setCurrentRole] = useState<string | null>(null);
   const [liveTranscript, setLiveTranscript] = useState<string>("");
-  const [messages, setMessages] = useState<messages[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
-  const route = useRouter();
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // ✅ SINGLE Vapi instance
+  const vapiRef = useRef<any>(null);
+  const listenersRef = useRef<any>(null);
 
   // Auto scroll
   useEffect(() => {
@@ -48,6 +51,18 @@ function MedicalVoiceAgent() {
   useEffect(() => {
     if (sessionId) GetSessionDetails();
   }, [sessionId]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (vapiRef.current) {
+        try {
+          vapiRef.current.stop();
+        } catch {}
+        vapiRef.current = null;
+      }
+    };
+  }, []);
 
   const GetSessionDetails = async () => {
     try {
@@ -62,44 +77,53 @@ function MedicalVoiceAgent() {
   };
 
   const StartCall = () => {
-    setLoading(true);
-    const vapi = new Vapi(process.env.NEXT_PUBLIC_VAPI_API_KEY!);
-    setVapiInstance(vapi);
+    if (vapiRef.current) {
+      console.warn("Call already exists.");
+      return;
+    }
 
-    const VapiAgentConfig = {
+    setLoading(true);
+
+    const vapi = new Vapi(process.env.NEXT_PUBLIC_VAPI_API_KEY!);
+    vapiRef.current = vapi;
+
+    const config = {
       name: "AI Medical Doctor Voice Agent",
       firstMessage:
-        "Hi there! I'm your AI medical assistant. I'm here to help you with any health-related questions or concerns you may have. How can I assist you today?",
+        "Hi there! I'm your AI medical assistant. How can I assist you today?",
       transcriber: {
         provider: "assembly-ai",
         language: "en",
       },
       voice: {
         provider: "azure",
-        voiceId: sessionDetail?.selectedDoctor?.VoiceId,
+        voiceId: sessionDetail?.selectedDoctor?.voiceId,
       },
       model: {
         provider: "openai",
-        model: "gpt-4.1",
+        model: "gpt-4",
         messages: [
           {
             role: "system",
             content:
               sessionDetail?.selectedDoctor?.agentPrompt ||
-              "You are a helpful and precise medical assistant for patients. Always try to answer as concisely as possible. If you don't know the answer, say you don't know. Always use all the information from the patient to answer. If the patient provides some information about their symptoms or condition, ask relevant follow-up questions to gather more details before providing a response.",
+              "You are a helpful and precise medical assistant.",
           },
         ],
       },
     };
-    // @ts-ignore
-    vapi.start(VapiAgentConfig);
 
-    // ✅ Call lifecycle events
-    vapi.on("call-start", () => setCallStarted(true));
-    vapi.on("call-end", () => setCallStarted(false));
+    // ✅ Define listeners
+    const handleCallStart = () => {
+      setCallStarted(true);
+      setLoading(false);
+    };
 
-    // ✅ Message safely
-    vapi.on("message", (message: any) => {
+    const handleCallEnd = () => {
+      setCallStarted(false);
+    };
+
+    const handleMessage = (message: any) => {
       if (!message || message.type !== "transcript") return;
 
       const { role, transcriptType, transcript } = message;
@@ -113,62 +137,93 @@ function MedicalVoiceAgent() {
         setLiveTranscript("");
         setCurrentRole(null);
       }
-    });
+    };
 
-    vapi.on("speech-start", () => setCurrentRole("assistant"));
-    vapi.on("speech-end", () => setCurrentRole("user"));
+    const handleSpeechStart = () => setCurrentRole("assistant");
+    const handleSpeechEnd = () => setCurrentRole("user");
+
+    // Attach listeners
+    vapi.on("call-start", handleCallStart);
+    vapi.on("call-end", handleCallEnd);
+    vapi.on("message", handleMessage);
+    vapi.on("speech-start", handleSpeechStart);
+    vapi.on("speech-end", handleSpeechEnd);
+
+    // Save references for cleanup
+    listenersRef.current = {
+      handleCallStart,
+      handleCallEnd,
+      handleMessage,
+      handleSpeechStart,
+      handleSpeechEnd,
+    };
+    //@ts-ignore
+    vapi.start(config);
   };
 
   const endCall = async () => {
+    if (!vapiRef.current) return;
+
     setLoading(true);
-    if (!vapiInstance) return;
 
     try {
-      vapiInstance.stop(); // Stops call
-      // Clean up listeners
-      vapiInstance.off("call-start");
-      vapiInstance.off("call-end");
-      vapiInstance.off("message");
-      vapiInstance.off("speech-start");
-      vapiInstance.off("speech-end");
+      const vapi = vapiRef.current;
+
+      await vapi.stop();
+
+      const {
+        handleCallStart,
+        handleCallEnd,
+        handleMessage,
+        handleSpeechStart,
+        handleSpeechEnd,
+      } = listenersRef.current || {};
+
+      if (handleCallStart) vapi.off("call-start", handleCallStart);
+      if (handleCallEnd) vapi.off("call-end", handleCallEnd);
+      if (handleMessage) vapi.off("message", handleMessage);
+      if (handleSpeechStart) vapi.off("speech-start", handleSpeechStart);
+      if (handleSpeechEnd) vapi.off("speech-end", handleSpeechEnd);
+
+      vapiRef.current = null;
+      listenersRef.current = null;
     } catch (error) {
       console.warn("Error stopping Vapi call:", error);
     }
 
     setCallStarted(false);
-    setVapiInstance(null);
     toast.success("Your report is generated");
 
-    route.replace("/dashboard");
+    await GenerateReport();
 
-    const result = await GenerateReport();
     setLoading(false);
+    route.replace("/dashboard");
   };
 
   const GenerateReport = async () => {
-    setLoading(true);
     const result = await axios.post("/api/medical-report", {
-      messages: messages,
-      sessionDetail: sessionDetail,
-      sessionId: sessionId,
+      messages,
+      sessionDetail,
+      sessionId,
     });
 
-    console.log(result.data);
     return result.data;
   };
+
   return (
     <div className="p-10 border rounded-3xl">
       <div className="flex justify-between items-center">
         <h2 className="p-1 px-2 border rounded-md flex gap-2 items-center">
           <Circle
-            className={`h-4 w-4 rounded-full ${callStarted ? "bg-green-500" : "bg-red-500"}`}
+            className={`h-4 w-4 rounded-full ${
+              callStarted ? "bg-green-500" : "bg-red-500"
+            }`}
           />
           {callStarted ? "Connected..." : "Not Connected"}
         </h2>
         <h2 className="font-bold text-xl text-gray-400">00:00</h2>
       </div>
 
-      {/* Doctor image */}
       {sessionDetail?.selectedDoctor?.image ? (
         <div className="flex items-center flex-col mt-10">
           <Image
@@ -189,12 +244,11 @@ function MedicalVoiceAgent() {
         </h2>
         <p className="text-sm text-gray-400">AI Medical Voice Agent</p>
 
-        {/* Messages */}
         <div className="mt-12 max-h-[300px] overflow-y-auto flex flex-col gap-3 px-4 md:px-20 lg:px-40 xl:px-56">
           {messages.slice(-6).map((msg, index) => (
             <div
               key={index}
-              className={`max-w-[75%] px-4 py-2 rounded-2xl text-sm leading-relaxed shadow-sm ${
+              className={`max-w-[75%] px-4 py-2 rounded-2xl text-sm shadow-sm ${
                 msg.role === "assistant"
                   ? "self-start bg-blue-50 text-blue-900"
                   : "self-end bg-green-50 text-green-900"
@@ -228,7 +282,7 @@ function MedicalVoiceAgent() {
 
         {!callStarted ? (
           <Button className="mt-20" onClick={StartCall}>
-            {loading ? <Loader className="animate-spin" /> : <PhoneCall />}{" "}
+            {loading ? <Loader className="animate-spin" /> : <PhoneCall />}
             Start Call
           </Button>
         ) : (

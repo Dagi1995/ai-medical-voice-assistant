@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { openai } from "@/config/OpenAiModel";
 import { report } from "process";
 import { Session } from "inspector/promises";
+import { db } from "@/config/db";
+import { sessionsChatTable } from "@/config/schema";
+import { eq } from "drizzle-orm";
 
 const REPORT_GEN_PROMPT = `Yoi are an AI Medical Voice Agent that just finished a voice conversation with a user. Based on doctor AI agent info and Conversation between AI medical agent and user, generate a structured report with the following fields:
 
@@ -41,7 +44,7 @@ export async function POST(request: NextRequest) {
       ", Conversation:" +
       JSON.stringify(message);
     const completion = await openai.chat.completions.create({
-      model: "google/gemini-2.5-flash-preview-05-20",
+      model: "arcee-ai/trinity-large-preview:free",
       messages: [
         { role: "system", content: REPORT_GEN_PROMPT },
         { role: "user", content: UserInput },
@@ -59,12 +62,12 @@ export async function POST(request: NextRequest) {
 
     // Save to Database
     const result = await db
-      .update(SessionChatTable)
+      .update(sessionsChatTable)
       .set({
         report: JSONResp,
-        conversation: messages,
+        conversation: message,
       })
-      .where(eq(SessionChatTable.sessionId, sessionId));
+      .where(eq(sessionsChatTable.sessionId, sessionId));
 
     return NextResponse.json(JSONResp);
   } catch (e) {
