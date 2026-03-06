@@ -6,6 +6,7 @@ import { UserButton } from "@clerk/nextjs";
 import { Menu, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 const menuOptions = [
   {
@@ -51,13 +52,12 @@ function AppHeader() {
     };
   }, [isMobileMenuOpen]);
 
-  // For demo purposes, let's assume we're on home page
-  // In reality, pathname would be "/home"
-  const currentPath = "/home"; // This would come from pathname
+  const pathName = usePathname();
+  const currentPath = pathName;
 
   return (
     <>
-      <header className="flex items-center justify-between p-4 px-10 md:px-20 lg:px-40 xl:px-60 border-b border-gray-200 bg-white/80 backdrop-blur-sm sticky top-0 z-50">
+      <header className="flex items-center justify-between p-4 px-10 md:px-20 lg:px-40 xl:px-60 border-b  bg-white/60 backdrop-blur-sm sticky top-0 z-50">
         {/* Logo Section */}
         <div className="flex items-center gap-3">
           <Image
@@ -73,7 +73,7 @@ function AppHeader() {
         </div>
 
         {/* Desktop Navigation Menu - Pill Shape */}
-        <div className="hidden md:flex items-center justify-around gap-1 border border-gray-200 rounded-2xl px-10 py-1.5 shadow-sm">
+        <div className="hidden md:flex items-center bg-white/100 justify-around gap-1 border border-gray-200 rounded-2xl px-10 py-1.5 shadow-sm">
           {menuOptions.map((option) => {
             const isActive = currentPath === option.path;
 
@@ -89,13 +89,13 @@ function AppHeader() {
                 }`}
                 asChild
               >
-                <a href={option.path}>
+                <Link href={option.path}>
                   {option.name}
                   {/* Active indicator line - only shows on Home */}
                   {isActive && option.name === "Home" && (
                     <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-4 h-0.5 bg-blue-600 rounded-full" />
                   )}
-                </a>
+                </Link>
               </Button>
             );
           })}
@@ -151,8 +151,8 @@ function AppHeader() {
                     <a href={option.path} className="flex items-center gap-2">
                       <span className="flex-1 text-left">{option.name}</span>
                       {/* Active indicator dot - only shows on Home */}
-                      {isActive && option.name === "Home" && (
-                        <span className="w-2 h-2 bg-blue-600 rounded-full" />
+                      {isActive && (
+                        <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-4 h-0.5 bg-blue-600 rounded-full" />
                       )}
                     </a>
                   </Button>

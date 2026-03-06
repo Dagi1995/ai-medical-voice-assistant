@@ -1,9 +1,9 @@
- import { db } from "@/config/db";
+import { db } from "@/config/db";
 import { sessionsChatTable } from "@/config/schema";
 import { currentUser } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 
 export async function POST(req: NextRequest) {
   try {
@@ -38,26 +38,31 @@ export async function GET(req: NextRequest) {
     const sessionId = searchParams.get("sessionId");
     if (!sessionId) return NextResponse.json(null);
 
-    if(sessionId=='all') 
-      {
-        const result = await db
-      .select()
-      .from(sessionsChatTable)
-      .where(eq(sessionsChatTable.createdBy, user?.primaryEmailAddress?.emailAddress));
-      .orderBy(desc(sessionsChatTable.id));
+    const user = await currentUser();
+    if (sessionId == "all") {
+      const result = await db
+        .select()
+        .from(sessionsChatTable)
+        .where(
+          //@ts-ignore
+          eq(
+            sessionsChatTable.createdBy,
+            user?.primaryEmailAddress?.emailAddress
+          )
+        )
+        .orderBy(desc(sessionsChatTable.id));
 
-    return NextResponse.json(result[0] || null);
-      } 
-      else{
-         const result = await db
-      .select()
-      .from(sessionsChatTable)
-      .where(eq(sessionsChatTable.sessionId, sessionId));
+      // return the full array of sessions for the current user
+      return NextResponse.json(result);
+    } else {
+      const result = await db
+        .select()
+        .from(sessionsChatTable)
+        .where(eq(sessionsChatTable.sessionId, sessionId));
 
-    return NextResponse.json(result[0] || null);
-      }
-  } 
-  catch (e) {
+      return NextResponse.json(result[0] || null);
+    }
+  } catch (e) {
     console.error("Failed to fetch session:", e);
     return NextResponse.json(
       { error: "Failed to fetch session" },

@@ -322,7 +322,7 @@ const Navbar = ({ opacity }: NavbarProps) => {
         ) : (
           <div className="flex items-center gap-4">
             <UserButton />
-            <Link href="/dashboard">
+            <Link href="/home">
               <Button className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
                 Dashboard
               </Button>

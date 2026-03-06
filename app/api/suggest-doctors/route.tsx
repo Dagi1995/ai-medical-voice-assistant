@@ -1,3 +1,4 @@
+// /api/suggest-doctors.ts
 import { openai } from "@/config/OpenAiModel";
 import { AIDoctorAgents } from "@/app/shared/list";
 import { NextRequest, NextResponse } from "next/server";
@@ -20,39 +21,38 @@ export async function POST(req: NextRequest) {
           content:
             "User Notes/Symptoms: " +
             notes +
-            ", Depends on user notes and symptoms, Please suggest list of doctors, Return Object in JSON only",
+            '. Suggest relevant doctors from the above list. Return only JSON in this format: { "suggestedDoctors": [ ... ] }',
         },
       ],
     });
-    console.log("completion:", JSON.stringify(completion));
 
     const rawMsg = (completion.choices?.[0]?.message as any)?.content || "";
 
-    // Remove common code fence wrappers and trim
     const cleaned = rawMsg
       .replace(/```json\s*/i, "")
       .replace(/```/g, "")
       .trim();
 
+    let parsed;
     try {
-      const parsed = JSON.parse(cleaned);
-      return NextResponse.json(parsed);
-    } catch (parseErr) {
-      console.error(
-        "Failed to parse model response as JSON:",
-        cleaned,
-        parseErr
-      );
-      return NextResponse.json(
-        { error: "Failed to parse model response", details: cleaned },
-        { status: 502 }
-      );
+      parsed = JSON.parse(cleaned);
+    } catch {
+      console.error("Failed to parse AI response:", cleaned);
+      parsed = { suggestedDoctors: [] };
     }
+
+    // Ensure payload always has suggestedDoctors key
+    if (Array.isArray(parsed)) {
+      parsed = { suggestedDoctors: parsed };
+    } else if (!parsed.suggestedDoctors) {
+      parsed = { suggestedDoctors: [] };
+    }
+
+    return NextResponse.json(parsed);
   } catch (e) {
-    console.error("suggest-doctors error:", e);
-    const message = (e as any)?.message || JSON.stringify(e);
+    console.error("AI request failed:", e);
     return NextResponse.json(
-      { error: "AI request failed", details: message },
+      { suggestedDoctors: [], error: "AI request failed" },
       { status: 502 }
     );
   }

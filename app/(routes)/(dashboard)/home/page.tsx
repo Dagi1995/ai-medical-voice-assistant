@@ -1,7 +1,7 @@
 import React from "react";
-import HistoryList from "./_components/HistoryList";
-import AddNewSessionDialog from "./_components/AddNewSessionDialog";
-import DoctorsAgentLIst from "./_components/DoctorsAgentLIst";
+import HistoryList from "../_components/HistoryList";
+import AddNewSessionDialog from "../_components/AddNewSessionDialog";
+import DoctorsAgentLIst from "../_components/DoctorsAgentLIst";
 
 const Dashboard = () => {
   return (
