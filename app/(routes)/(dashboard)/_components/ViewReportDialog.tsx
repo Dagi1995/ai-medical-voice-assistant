@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -34,6 +34,7 @@ import {
   AlertCircle,
   Info,
 } from "lucide-react";
+import { useTheme } from "next-themes";
 
 type props = {
   record: SessionDetail;
@@ -50,6 +51,18 @@ const specialtyIcon: Record<string, any> = {
 };
 
 function ViewReportDialog({ record }: props) {
+  const [mounted, setMounted] = useState(false);
+  const { theme, systemTheme } = useTheme();
+  
+  // After mounting, we can safely show the UI
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Determine current theme
+  const currentTheme = theme === "system" ? systemTheme : theme;
+  const isDark = mounted && currentTheme === "dark";
+
   const specialty = record.selectedDoctor?.specialty || "General";
   const IconComponent = specialtyIcon[specialty] || Stethoscope;
   const doctorName = record.selectedDoctor?.specialty || "Medical Specialist";
@@ -64,14 +77,14 @@ function ViewReportDialog({ record }: props) {
 
   const getSpecialtyColor = (specialty: string | undefined): string => {
     const colors: Record<string, string> = {
-      Cardiology: "from-red-500 to-red-600",
-      Neurology: "from-purple-500 to-purple-600",
-      Pediatrics: "from-green-500 to-green-600",
-      Dermatology: "from-yellow-500 to-yellow-600",
-      Orthopedics: "from-blue-500 to-blue-600",
-      Ophthalmology: "from-indigo-500 to-indigo-600",
+      Cardiology: isDark ? "from-red-600 to-red-700" : "from-red-500 to-red-600",
+      Neurology: isDark ? "from-purple-600 to-purple-700" : "from-purple-500 to-purple-600",
+      Pediatrics: isDark ? "from-green-600 to-green-700" : "from-green-500 to-green-600",
+      Dermatology: isDark ? "from-yellow-600 to-yellow-700" : "from-yellow-500 to-yellow-600",
+      Orthopedics: isDark ? "from-blue-600 to-blue-700" : "from-blue-500 to-blue-600",
+      Ophthalmology: isDark ? "from-indigo-600 to-indigo-700" : "from-indigo-500 to-indigo-600",
     };
-    return colors[specialty || ""] || "from-gray-500 to-gray-600";
+    return colors[specialty || ""] || (isDark ? "from-gray-700 to-gray-800" : "from-gray-500 to-gray-600");
   };
 
   return (
@@ -80,16 +93,23 @@ function ViewReportDialog({ record }: props) {
         <Button
           variant="outline"
           size="sm"
-          className="gap-2 hover:bg-gray-50 w-full sm:w-auto"
+          className={`gap-2 w-full sm:w-auto ${
+            isDark 
+              ? "border-gray-700 bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-gray-100" 
+              : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
+          }`}
         >
           <FileText className="h-4 w-4" />
           <span className="sm:inline">View Report</span>
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="w-[95vw] max-w-[1000px] sm:w-[95vw] sm:max-w-[1000px] max-h-[90vh] overflow-y-auto p-4 sm:p-6">
+      <DialogContent className={`w-[95vw] max-w-[1000px] sm:w-[95vw] sm:max-w-[1000px] max-h-[90vh] overflow-y-auto p-4 sm:p-6 ${
+        isDark ? "bg-gray-900 border-gray-800" : "bg-white border-gray-200"
+      }`}>
         {/* Header Gradient */}
         <div className="absolute top-0 left-0 right-0 h-24 sm:h-32 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 rounded-t-lg opacity-90" />
+        
         <DialogHeader className="relative pt-6 sm:pt-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
             <Badge
@@ -144,10 +164,15 @@ function ViewReportDialog({ record }: props) {
             </div>
           </DialogTitle>
         </DialogHeader>
+        
         <DialogDescription asChild>
           <div className="mt-4 sm:mt-6 space-y-4 sm:space-y-6">
             {/* Doctor Info Card */}
-            <div className="bg-gradient-to-br from-gray-50 to-white p-4 sm:p-6 rounded-xl border border-gray-200">
+            <div className={`p-4 sm:p-6 rounded-xl border ${
+              isDark 
+                ? "bg-gray-800/50 border-gray-700" 
+                : "bg-gradient-to-br from-gray-50 to-white border-gray-200"
+            }`}>
               <div className="flex flex-col sm:flex-row items-start gap-4">
                 <Avatar className="h-16 w-16 sm:h-20 sm:w-20 rounded-xl border-2 border-white shadow-lg">
                   <AvatarImage
@@ -166,7 +191,9 @@ function ViewReportDialog({ record }: props) {
 
                 <div className="flex-1 w-full">
                   <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
-                    <h3 className="text-lg sm:text-xl font-semibold text-gray-900">
+                    <h3 className={`text-lg sm:text-xl font-semibold ${
+                      isDark ? "text-gray-100" : "text-gray-900"
+                    }`}>
                       {doctorName}
                     </h3>
                     <Badge
@@ -180,15 +207,21 @@ function ViewReportDialog({ record }: props) {
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 mt-3">
-                    <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600">
-                      <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400 flex-shrink-0" />
-                      <span className="truncate">
+                    <div className="flex items-center gap-2 text-xs sm:text-sm">
+                      <Calendar className={`h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0 ${
+                        isDark ? "text-gray-500" : "text-gray-400"
+                      }`} />
+                      <span className={isDark ? "text-gray-300" : "text-gray-600"}>
                         {moment(record.createdOn).format("MMMM D, YYYY")}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600">
-                      <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400 flex-shrink-0" />
-                      <span>{moment(record.createdOn).format("h:mm A")}</span>
+                    <div className="flex items-center gap-2 text-xs sm:text-sm">
+                      <Clock className={`h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0 ${
+                        isDark ? "text-gray-500" : "text-gray-400"
+                      }`} />
+                      <span className={isDark ? "text-gray-300" : "text-gray-600"}>
+                        {moment(record.createdOn).format("h:mm A")}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -196,18 +229,35 @@ function ViewReportDialog({ record }: props) {
             </div>
 
             {/* Consultation Notes */}
-            <div className="bg-white p-4 sm:p-6 rounded-xl border border-gray-200">
-              <h4 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 flex items-center gap-2">
-                <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500" />
+            <div className={`p-4 sm:p-6 rounded-xl border ${
+              isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
+            }`}>
+              <h4 className={`text-base sm:text-lg font-semibold mb-3 sm:mb-4 flex items-center gap-2 ${
+                isDark ? "text-gray-100" : "text-gray-900"
+              }`}>
+                <FileText className={`h-4 w-4 sm:h-5 sm:w-5 ${
+                  isDark ? "text-blue-400" : "text-blue-500"
+                }`} />
                 Consultation Notes
               </h4>
-              <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
-                <p className="text-sm sm:text-base text-gray-700 leading-relaxed whitespace-pre-wrap break-words">
+              <div className={`p-3 sm:p-4 rounded-lg ${
+                isDark ? "bg-gray-900" : "bg-gray-50"
+              }`}>
+                <p className={`text-sm sm:text-base leading-relaxed whitespace-pre-wrap break-words ${
+                  isDark ? "text-gray-300" : "text-gray-700"
+                }`}>
                   {record.notes || "No notes available for this consultation"}
                 </p>
               </div>
               {!record.notes && (
-                <Badge variant="outline" className="mt-3 bg-gray-50">
+                <Badge 
+                  variant="outline" 
+                  className={`mt-3 ${
+                    isDark 
+                      ? "bg-gray-900 border-gray-700 text-gray-400" 
+                      : "bg-gray-50 border-gray-200 text-gray-600"
+                  }`}
+                >
                   <AlertCircle className="h-3 w-3 mr-1" />
                   No notes recorded
                 </Badge>
@@ -217,10 +267,20 @@ function ViewReportDialog({ record }: props) {
             {/* Report Data */}
             {reportData && (
               <>
-                <Separator className="my-2 sm:my-4" />
-                <div className="bg-gradient-to-br from-green-50 to-white p-4 sm:p-6 rounded-xl border border-green-200">
-                  <h4 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 flex items-center gap-2">
-                    <Info className="h-4 w-4 sm:h-5 sm:w-5 text-green-500" />
+                <Separator className={`my-2 sm:my-4 ${
+                  isDark ? "bg-gray-800" : "bg-gray-200"
+                }`} />
+                <div className={`p-4 sm:p-6 rounded-xl border ${
+                  isDark 
+                    ? "bg-gray-800/50 border-green-900" 
+                    : "bg-gradient-to-br from-green-50 to-white border-green-200"
+                }`}>
+                  <h4 className={`text-base sm:text-lg font-semibold mb-3 sm:mb-4 flex items-center gap-2 ${
+                    isDark ? "text-gray-100" : "text-gray-900"
+                  }`}>
+                    <Info className={`h-4 w-4 sm:h-5 sm:w-5 ${
+                      isDark ? "text-green-400" : "text-green-500"
+                    }`} />
                     Medical Report
                   </h4>
 
@@ -228,12 +288,18 @@ function ViewReportDialog({ record }: props) {
                     {Object.entries(reportData).map(([key, value]) => (
                       <div
                         key={key}
-                        className="border-b border-green-100 pb-2 sm:pb-3 last:border-0"
+                        className={`border-b pb-2 sm:pb-3 last:border-0 ${
+                          isDark ? "border-green-900" : "border-green-100"
+                        }`}
                       >
-                        <h5 className="text-xs sm:text-sm font-medium text-green-700 capitalize mb-1">
+                        <h5 className={`text-xs sm:text-sm font-medium capitalize mb-1 ${
+                          isDark ? "text-green-400" : "text-green-700"
+                        }`}>
                           {key.replace(/([A-Z])/g, " $1").trim()}
                         </h5>
-                        <p className="text-xs sm:text-sm text-gray-700 break-words">
+                        <p className={`text-xs sm:text-sm break-words ${
+                          isDark ? "text-gray-400" : "text-gray-700"
+                        }`}>
                           {typeof value === "object"
                             ? JSON.stringify(value, null, 2)
                             : String(value)}
@@ -246,9 +312,17 @@ function ViewReportDialog({ record }: props) {
             )}
 
             {/* Footer Note */}
-            <div className="bg-yellow-50 p-3 sm:p-4 rounded-lg border border-yellow-200 mt-6">
-              <p className="text-xs sm:text-sm text-yellow-800 flex items-start gap-2">
-                <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0 mt-0.5" />
+            <div className={`p-3 sm:p-4 rounded-lg border mt-6 ${
+              isDark 
+                ? "bg-yellow-950/30 border-yellow-900" 
+                : "bg-yellow-50 border-yellow-200"
+            }`}>
+              <p className={`text-xs sm:text-sm flex items-start gap-2 ${
+                isDark ? "text-yellow-400" : "text-yellow-800"
+              }`}>
+                <AlertCircle className={`h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0 mt-0.5 ${
+                  isDark ? "text-yellow-500" : "text-yellow-600"
+                }`} />
                 <span className="flex-1">
                   This is an AI-generated preliminary report from your voice
                   consultation. Please consult with a healthcare professional
@@ -258,11 +332,16 @@ function ViewReportDialog({ record }: props) {
             </div>
           </div>
         </DialogDescription>
+        
         <DialogFooter className="mt-4 sm:mt-6 flex-col sm:flex-row gap-2 sm:gap-0">
           <Button
             variant="outline"
             onClick={() => {}}
-            className="w-full sm:w-auto order-2 sm:order-1"
+            className={`w-full sm:w-auto order-2 sm:order-1 ${
+              isDark 
+                ? "border-gray-700 bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-gray-100" 
+                : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
+            }`}
           >
             Close
           </Button>

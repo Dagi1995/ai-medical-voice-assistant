@@ -10,23 +10,26 @@ export type doctorAgent = {
   agentPrompt: string;
   voiceId?: string;
 };
+
 type Props = {
   doctorAgent: doctorAgent;
 };
 
 function DoctorAgentCard({ doctorAgent }: Props) {
   return (
-    <div>
+    <div className="bg-card text-card-foreground border border-border rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow flex flex-col items-center text-center">
       <Image
         src={doctorAgent.image}
         alt={doctorAgent.specialty || "Doctor image"}
-        width={200}
-        height={100}
+        width={80}
+        height={80}
         className="w-20 h-20 object-cover rounded-full"
       />
       <h2 className="font-semibold text-lg mt-2">{doctorAgent.specialty}</h2>
-      <p className="text-gray-600 mt-1">{doctorAgent.description}</p>
-      <Button className="w-50 mt-2"> Start Consultation </Button>
+      <p className="text-muted-foreground mt-1 text-sm">
+        {doctorAgent.description}
+      </p>
+      <Button className="mt-4 w-full sm:w-auto px-6">Start Consultation</Button>
     </div>
   );
 }

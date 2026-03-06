@@ -306,12 +306,33 @@ const Navbar = ({ opacity }: NavbarProps) => {
           </span>
         </div>
 
-        <div className="hidden md:flex gap-8 font-medium">
-          <a className="hover:text-blue-500 transition">Home</a>
-          <a className="hover:text-purple-500 transition">Results</a>
-          <a className="hover:text-pink-500 transition">Why Us</a>
-          <a className="hover:text-cyan-500 transition">Testimonials</a>
-        </div>
+       <div className="hidden md:block">
+  <div className="relative rounded-full p-[2px] animate-gradient-x overflow-hidden bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500">
+    {/* Inner pill: normal background / foreground */}
+    <div className="bg-background rounded-full px-8 py-2 flex gap-8 font-medium">
+      <a className="hover:text-blue-500 transition-colors">Home</a>
+      <a className="hover:text-purple-500 transition-colors">Results</a>
+      <a className="hover:text-pink-500 transition-colors">Why Us</a>
+      <a className="hover:text-cyan-500 transition-colors">Testimonials</a>
+    </div>
+  </div>
+</div>
+
+<style jsx>{`
+  @keyframes gradient-x {
+    0%, 100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+  }
+
+  .animate-gradient-x {
+    background-size: 200% 200%;
+    animation: gradient-x 3s ease infinite;
+  }
+`}</style>
 
         {!user ? (
           <Link href="/sign-in">

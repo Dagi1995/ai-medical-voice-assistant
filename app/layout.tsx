@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-// @ts-ignore: allow importing global CSS without type declarations
+//@ts-ignore
 import "./globals.css";
+
 import { ClerkProvider } from "@clerk/nextjs";
 import Provider from "./provider";
 import { Toaster } from "sonner";
+import { ThemeProvider } from "@/components/theme-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,19 +25,26 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <ClerkProvider>
-      <html lang="en">
+      <html lang="en" suppressHydrationWarning>
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
-          <Provider>
-            {children}
-            <Toaster />
-          </Provider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <Provider>
+              {children}
+              <Toaster />
+            </Provider>
+          </ThemeProvider>
         </body>
       </html>
     </ClerkProvider>

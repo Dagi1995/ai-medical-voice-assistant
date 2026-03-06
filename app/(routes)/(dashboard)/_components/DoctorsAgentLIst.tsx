@@ -5,23 +5,19 @@ import DoctorAgentCard from "./DoctorAgentCard";
 function DoctorsAgentLIst() {
   return (
     <div className="mt-10">
-      <h2 className="font-bold text-2xl  flex item-center justify-center">
-        AI Spacialist Doctors Agent
+      <h2 className="font-bold text-2xl flex justify-center mb-6">
+        AI Specialist Doctors Agent
       </h2>
 
-      <div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {AIDoctorAgents.map((doctor, index) => (
-          <div
+          <DoctorAgentCard
             key={index}
-            className="border  p-4 rounded-lg mt-4 shadow-md hover:shadow-lg transition-shadow duration-300"
-          >
-            <DoctorAgentCard
-              doctorAgent={{
-                ...doctor,
-                specialty: (doctor as any).specialty ?? "",
-              }}
-            />
-          </div>
+            doctorAgent={{
+              ...doctor,
+              specialty: doctor.specialty ?? "",
+            }}
+          />
         ))}
       </div>
     </div>
