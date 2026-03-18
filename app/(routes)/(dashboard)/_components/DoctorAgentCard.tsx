@@ -17,19 +17,27 @@ type Props = {
 
 function DoctorAgentCard({ doctorAgent }: Props) {
   return (
-    <div className="bg-card text-card-foreground border border-border rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow flex flex-col items-center text-center">
-      <Image
-        src={doctorAgent.image}
-        alt={doctorAgent.specialty || "Doctor image"}
-        width={80}
-        height={80}
-        className="w-20 h-20 object-cover rounded-full"
-      />
-      <h2 className="font-semibold text-lg mt-2">{doctorAgent.specialty}</h2>
-      <p className="text-muted-foreground mt-1 text-sm">
+    <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl border border-white/40 dark:border-slate-800/50 rounded-2xl p-6 shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 flex flex-col items-center text-center group">
+      <div className="relative mb-4">
+        <div className="absolute inset-0 bg-gradient-to-tr from-blue-500 to-purple-500 rounded-full blur-md opacity-20 group-hover:opacity-40 transition-opacity"></div>
+        <Image
+          src={doctorAgent.image}
+          alt={doctorAgent.specialty || "Doctor image"}
+          width={80}
+          height={80}
+          className="relative w-24 h-24 object-cover rounded-full border-2 border-white dark:border-slate-800 shadow-md"
+        />
+      </div>
+      <h2 className="font-bold text-xl text-slate-900 dark:text-slate-100">{doctorAgent.specialty}</h2>
+      <p className="text-slate-500 dark:text-slate-400 mt-2 text-sm leading-relaxed">
         {doctorAgent.description}
       </p>
-      <Button className="mt-4 w-full sm:w-auto px-6">Start Consultation</Button>
+      <Button 
+        variant={"default"} 
+        className="mt-6 w-full rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 hover:scale-[1.02] shadow-md transition-all"
+      >
+        Start Consultation
+      </Button>
     </div>
   );
 }

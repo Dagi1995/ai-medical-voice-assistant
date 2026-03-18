@@ -2,6 +2,7 @@ import { AIDoctorAgents } from "@/app/shared/list";
 import React from "react";
 import DoctorAgentCard from "./DoctorAgentCard";
 
+
 function DoctorsAgentLIst() {
   return (
     <div className="mt-10">

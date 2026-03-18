@@ -118,10 +118,10 @@ function HistoryTable({ historyList }: Props) {
   // Empty state with dark mode support
   if (safeHistoryList.length === 0) {
     return (
-      <div className={`relative overflow-hidden rounded-2xl border shadow-xl ${
+      <div className={`relative overflow-hidden rounded-3xl border shadow-xl backdrop-blur-2xl ${
         isDark 
-          ? "border-gray-800 bg-gray-900" 
-          : "border-gray-100 bg-white"
+          ? "border-slate-700/50 bg-slate-900/50" 
+          : "border-white/50 bg-white/50"
       }`}>
         <div className={`absolute inset-0 ${
           isDark 
@@ -185,10 +185,10 @@ function HistoryTable({ historyList }: Props) {
   return (
     <div className="space-y-4 md:space-y-6">
       {/* Header with stats - responsive */}
-      <div className={`flex flex-col sm:flex-row sm:items-center justify-between p-3 md:p-4 rounded-xl border gap-3 ${
+      <div className={`flex flex-col sm:flex-row sm:items-center justify-between p-3 md:p-4 rounded-xl border gap-3 backdrop-blur-md shadow-sm ${
         isDark 
-          ? "bg-gray-900/50 border-gray-800" 
-          : "bg-gradient-to-r from-gray-50 to-white border-gray-100"
+          ? "bg-slate-900/50 border-slate-700/50" 
+          : "bg-white/60 border-white/50"
       }`}>
         <div className="flex items-center gap-3 md:gap-4">
           <div className={`flex items-center gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-lg shadow-sm ${
@@ -240,10 +240,10 @@ function HistoryTable({ historyList }: Props) {
           return (
             <div
               key={record.id?.toString() || index}
-              className={`group relative overflow-hidden rounded-xl border shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 ${
+              className={`group relative overflow-hidden rounded-2xl border shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 backdrop-blur-lg ${
                 isDark 
-                  ? "bg-gray-900 border-gray-800 hover:bg-gray-900/90" 
-                  : "bg-white border-gray-100 hover:bg-white"
+                  ? "bg-slate-900/60 border-slate-700/50 hover:bg-slate-900/80" 
+                  : "bg-white/70 border-white/50 hover:bg-white/90"
               }`}
               onMouseEnter={() => setHoveredRow(record.id?.toString() || null)}
               onMouseLeave={() => setHoveredRow(null)}
@@ -554,10 +554,10 @@ function HistoryTable({ historyList }: Props) {
 
       {/* Responsive Pagination */}
       {totalPages > 1 && (
-        <div className={`rounded-xl border shadow-sm p-3 md:p-4 ${
+        <div className={`rounded-xl border shadow-sm p-3 md:p-4 backdrop-blur-md ${
           isDark 
-            ? "bg-gray-900 border-gray-800" 
-            : "bg-white border-gray-100"
+            ? "bg-slate-900/50 border-slate-700/50" 
+            : "bg-white/60 border-white/50"
         }`}>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-2 md:gap-3 order-2 sm:order-1">

@@ -11,6 +11,7 @@ export const usersTable = pgTable("users", {
 export const sessionsChatTable = pgTable("sessionsChatTable", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
   sessionId: varchar().notNull(),
+  language: varchar().default("English"),
   notes: text(),
   selectedDoctor: json(),
   conversation: json(),

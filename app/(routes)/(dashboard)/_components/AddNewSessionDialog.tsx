@@ -13,12 +13,11 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import axios from "axios";
-import { ArrowRight, Loader2 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { ArrowRight, Loader2, Sparkles, Bot, Stethoscope } from "lucide-react";
+import { useState } from "react";
 import { doctorAgent } from "./DoctorAgentCard";
 import SuggestedDoctorCard from "./SuggestedDoctorCard";
 import { useRouter } from "next/navigation";
-import { useTheme } from "next-themes";
 
 function AddNewSessionDialog() {
   const [note, setNote] = useState<string>("");
@@ -26,19 +25,7 @@ function AddNewSessionDialog() {
   const [selectedDoctor, setSelectedDoctor] = useState<doctorAgent>();
   const [suggestedDoctors, setSuggestedDoctors] = useState<doctorAgent[]>();
   const [open, setOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
-
-  const { theme, systemTheme } = useTheme();
   const router = useRouter();
-
-  // After mounting, we can safely show the UI
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  // Determine current theme
-  const currentTheme = theme === "system" ? systemTheme : theme;
-  const isDark = mounted && currentTheme === "dark";
 
   // Reset dialog state
   const resetDialog = () => {
@@ -97,80 +84,64 @@ function AddNewSessionDialog() {
     >
       <DialogTrigger asChild>
         <Button
-          className={`mt-3 ${
-            isDark
-              ? "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-              : ""
-          }`}
+          className="relative px-8 py-8 md:px-12 md:py-8 text-lg font-bold rounded-2xl overflow-hidden group border border-slate-700/50 dark:border-slate-300/20 bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:scale-[1.02] transition-all duration-300 shadow-[0_0_40px_-10px_rgba(0,0,0,0.3)] dark:shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)]"
         >
-          + Start a Consultation
+          {/* Animated gradient background on hover */}
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 opacity-0 group-hover:opacity-10 dark:group-hover:opacity-20 transition-opacity duration-500" />
+          
+          <span className="relative z-10 flex items-center gap-3">
+            <Sparkles className="w-5 h-5 text-yellow-400 dark:text-yellow-600 animate-pulse" /> 
+            Start AI Consultation
+          </span>
         </Button>
       </DialogTrigger>
 
       <DialogContent
-        className={`${
-          isDark ? "bg-gray-900 border-gray-800" : "bg-white border-gray-200"
-        }`}
+        className="bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl border border-slate-200/50 dark:border-slate-800/50 shadow-2xl sm:rounded-3xl"
       >
         <DialogHeader>
-          <DialogTitle className={isDark ? "text-gray-100" : "text-gray-900"}>
-            Add Basic Details
+          <DialogTitle className="text-slate-900 dark:text-slate-100 flex items-center gap-2 text-2xl">
+            <Bot className="w-6 h-6 text-blue-500" />
+            AI Intake Assistant
           </DialogTitle>
 
           <DialogDescription asChild>
             {!suggestedDoctors ? (
-              <div>
-                <h2
-                  className={`text-sm font-medium mb-2 ${
-                    isDark ? "text-gray-300" : "text-gray-700"
-                  }`}
-                >
-                  Add Symptoms or Other Details
+              <div className="mt-6">
+                <h2 className="text-sm font-semibold mb-3 text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                  <Stethoscope className="w-4 h-4" />
+                  Describe your symptoms
                 </h2>
 
                 <Textarea
-                  placeholder="Describe your symptoms here..."
-                  className={`h-[200px] mt-2 ${
-                    isDark
-                      ? "bg-gray-800 border-gray-700 text-gray-100 placeholder:text-gray-500 focus:border-blue-500 focus:ring-blue-500"
-                      : "bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-blue-400 focus:ring-blue-400"
-                  }`}
+                  placeholder="How are you feeling today? e.g. I have a headache and mild fever..."
+                  className="h-[180px] p-4 resize-none bg-slate-50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus-visible:ring-blue-500/50 focus-visible:border-blue-500 rounded-2xl shadow-inner transition-all"
                   disabled={loading}
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                 />
 
                 {loading && (
-                  <div
-                    className={`flex items-center gap-2 mt-3 text-sm ${
-                      isDark ? "text-gray-400" : "text-gray-500"
-                    }`}
-                  >
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Finding the best doctors for you...
+                  <div className="flex items-center gap-3 mt-4 text-sm font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/30 p-3 rounded-xl border border-blue-100 dark:border-blue-900">
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    AI is analyzing your symptoms and finding the best specialists...
                   </div>
                 )}
               </div>
             ) : (
-              <div>
-                <h2
-                  className={`mb-3 font-semibold ${
-                    isDark ? "text-gray-100" : "text-gray-900"
-                  }`}
-                >
-                  Select The Doctor
+              <div className="mt-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <h2 className="mb-4 font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-yellow-500" />
+                  Recommended Specialists
                 </h2>
 
-                <div className="grid grid-cols-2 gap-5">
+                <div className="grid grid-cols-2 gap-4">
                   {suggestedDoctors.length === 0 && !loading ? (
-                    <p
-                      className={`col-span-2 ${
-                        isDark ? "text-gray-400" : "text-gray-500"
-                      }`}
-                    >
-                      No doctors found. Try describing your symptoms
-                      differently.
-                    </p>
+                    <div className="col-span-2 p-6 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-center">
+                      <p className="text-slate-500 dark:text-slate-400">
+                        No specific doctors found. Try adding more details about your symptoms.
+                      </p>
+                    </div>
                   ) : (
                     suggestedDoctors.map((doctor, index) => (
                       <SuggestedDoctorCard
@@ -187,16 +158,12 @@ function AddNewSessionDialog() {
           </DialogDescription>
         </DialogHeader>
 
-        <DialogFooter>
+        <DialogFooter className="mt-6 sm:mt-8 gap-3 sm:gap-0">
           <DialogClose asChild>
             <Button
               variant="outline"
               disabled={loading}
-              className={
-                isDark
-                  ? "border-gray-700 bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-gray-100"
-                  : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
-              }
+              className="rounded-xl border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
             >
               Cancel
             </Button>
@@ -206,17 +173,13 @@ function AddNewSessionDialog() {
             <Button
               disabled={!note || loading}
               onClick={OnclickNext}
-              className={
-                isDark && !(!note || loading)
-                  ? "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-                  : ""
-              }
+              className="rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md shadow-blue-500/20 transition-all group"
             >
               {loading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
                 <>
-                  Next <ArrowRight />
+                  Analyze Symptoms <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                 </>
               )}
             </Button>
@@ -224,16 +187,14 @@ function AddNewSessionDialog() {
             <Button
               onClick={onStartConsultation}
               disabled={!selectedDoctor || loading}
-              className={
-                isDark && !(!selectedDoctor || loading)
-                  ? "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-                  : ""
-              }
+              className="rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-md shadow-blue-500/20 transition-all group"
             >
               {loading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
-                "Start Consultation"
+                <>
+                  Start Consultation <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                </>
               )}
             </Button>
           )}
