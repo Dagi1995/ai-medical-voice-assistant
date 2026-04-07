@@ -31,6 +31,12 @@ export const menuOptions = [
     path: "/doctors",
     icon: <Stethoscope className="w-5 h-5" />
   },
+  {
+    id: 5,
+    name: "Settings",
+    path: "/settings",
+    icon: <Settings className="w-5 h-5" />
+  },
 ];
 
 const Sidebar = () => {

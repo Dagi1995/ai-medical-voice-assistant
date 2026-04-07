@@ -3,10 +3,12 @@
 import { motion, useScroll, useTransform } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { MedicalVoiceAgentDemo } from "./_components/Feature3dGrid";
+import PharmacyFinder from "@/components/pharmacy-finder";
 import { UserButton, useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { ModeToggle } from "@/app/(routes)/(dashboard)/_components/DarkMood";
 
 /* ===========================
    HOME
@@ -266,6 +268,22 @@ export default function Home() {
       >
         <MedicalVoiceAgentDemo />
       </motion.section>
+
+      <section className="py-16 px-4 bg-white dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-4">
+              Nearby Pharmacy Finder
+            </h2>
+            <p className="text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
+              Detect your location and display nearby pharmacies including name, distance, and address.
+            </p>
+          </div>
+          <div className="flex justify-center">
+            <PharmacyFinder />
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
@@ -342,6 +360,7 @@ const Navbar = ({ opacity }: NavbarProps) => {
           </Link>
         ) : (
           <div className="flex items-center gap-4">
+            <ModeToggle />
             <UserButton />
             <Link href="/home">
               <Button className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
