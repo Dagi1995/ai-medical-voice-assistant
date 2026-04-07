@@ -7,6 +7,7 @@ import { Menu, X } from "lucide-react";
 import Sidebar from "./Sidebar";
 import { usePathname } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
+import { createPortal } from "react-dom";
 
 const DashboardTopBar = () => {
   const [mounted, setMounted] = useState(false);
@@ -25,7 +26,7 @@ const DashboardTopBar = () => {
 
   return (
     <>
-      <div className="flex items-center justify-between px-6 md:px-10 py-6 bg-transparent border-b border-gray-200 dark:border-gray-800">
+      <div className="relative z-50 flex items-center justify-between px-6 md:px-10 py-6 bg-transparent border-b border-gray-200 dark:border-gray-800">
         <div className="flex items-center gap-4">
           <button 
             className="md:hidden p-2 -ml-2 text-gray-600 dark:text-gray-300"
@@ -48,19 +49,28 @@ const DashboardTopBar = () => {
         </div>
       </div>
 
-      {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-50 flex md:hidden">
-          <div className="fixed inset-0 bg-black/50" onClick={() => setIsMobileMenuOpen(false)}></div>
-          <div className="relative w-64 h-full bg-[#e5e5e5] dark:bg-gray-900 shadow-xl overflow-y-auto z-50">
+      {mounted && isMobileMenuOpen && typeof document !== "undefined" && createPortal(
+        <div className="fixed inset-0 z-[9999] md:hidden">
+          {/* Backdrop */}
+          <div 
+            className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm transition-opacity" 
+            onClick={() => setIsMobileMenuOpen(false)}
+          ></div>
+          
+          {/* Sidebar Drawer */}
+          <div className="relative w-72 h-full bg-white dark:bg-slate-950 shadow-2xl overflow-y-auto animate-in slide-in-from-left duration-300">
             <button 
-              className="absolute top-6 right-4 p-2 text-gray-600 dark:text-gray-300 z-[60]"
+              className="absolute top-6 right-4 p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
               onClick={() => setIsMobileMenuOpen(false)}
             >
-              <X className="w-5 h-5" />
+              <X className="w-6 h-6" />
             </button>
-            <Sidebar />
+            <div className="h-full pt-4">
+               <Sidebar />
+            </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

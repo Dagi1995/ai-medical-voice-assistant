@@ -7,8 +7,9 @@ import { doctorAgent } from "../../_components/DoctorAgentCard";
 import { Circle, Loader, PhoneCall, PhoneOff } from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import Vapi from "@vapi-ai/web";
 import { toast } from "sonner";
+import { useAddisRealtime } from "../../../../../hook/useAddisRealtime";
+import { MedicalLibrary } from "../../../../../lib/medical/library";
 
 export type SessionDetail = {
   id: number;
@@ -37,17 +38,122 @@ function MedicalVoiceAgent() {
   const [liveTranscript, setLiveTranscript] = useState<string>("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
+  const [recognition, setRecognition] = useState<any>(null);
+  const [timer, setTimer] = useState(0);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // ✅ SINGLE Vapi instance
-  const vapiRef = useRef<any>(null);
-  const listenersRef = useRef<any>(null);
+  // Hook instance with dynamic prompt
+  const sysPrompt = 
+    (sessionDetail?.selectedDoctor?.agentPrompt || "You are a helpful and precise medical assistant.") +
+    "\\n[SYSTEM RULE]: You are an AI Medical Assistant talking directly to the user over voice. Be human-like, helpful, empathetic, and always respond in Amharic. If system knowledge injections occur, use them organically to guide the patient without acting like a robot reading facts.";
+
+  const {
+    isConnected,
+    isStreaming,
+    startRealtime,
+    stopRealtime,
+    playGreeting,
+    sendTextMessage,
+  } = useAddisRealtime({
+    apiKey: process.env.NEXT_PUBLIC_ADDIS_API_KEY || "YOUR_FALLBACK_KEY",
+    systemInstructions: sysPrompt,
+    onMessage: (role, content) => {
+      setMessages((prev) => [...prev, { role, text: content }]);
+      setCurrentRole(role);
+      setLiveTranscript(""); // clear user partial transcript if ai answers
+    },
+    onGreetingStart: () => setCurrentRole("assistant"),
+    onGreetingEnd: () => setCurrentRole(null),
+    onError: (err: any) => {
+      // Ignore normal websocket disconnect empty Event objects
+      if (err instanceof Event || (typeof err === "object" && !err.message)) {
+        return;
+      }
+      console.error(err);
+      toast.error("Realtime Voice Error detected.");
+    },
+  });
+
+  // Speech Recognition mapping
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const SpeechRecognition =
+        (window as any).SpeechRecognition ||
+        (window as any).webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        const sr = new SpeechRecognition();
+        sr.continuous = true;
+        sr.interimResults = true;
+        sr.lang = "am-ET";
+        sr.onresult = (event: any) => {
+          let interimTranscript = "";
+          let finalTranscript = "";
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            const result = event.results[i];
+            if (result.isFinal) {
+              finalTranscript += result[0].transcript;
+            } else {
+              interimTranscript += result[0].transcript;
+            }
+          }
+          if (finalTranscript) {
+            setMessages((prev) => [
+              ...prev,
+              { role: "user", text: finalTranscript },
+            ]);
+            handleRAG(finalTranscript);
+          }
+          
+          setLiveTranscript(finalTranscript ? "" : interimTranscript);
+          setCurrentRole("user");
+        };
+        sr.onerror = (e: any) => console.log("Speech Error", e);
+        setRecognition(sr);
+      }
+    }
+  }, []);
+
+  const handleRAG = (transcript: string) => {
+    let ragInjection = "";
+    Object.entries(MedicalLibrary).forEach(([condition, data]) => {
+      const { keywords, advice_am, follow_up_questions_am } = data;
+      const t = transcript.toLowerCase();
+      // Match if any keyword is in transcript
+      if (keywords.some((k) => t.includes(k.toLowerCase()))) {
+        ragInjection += `\\n[SYSTEM KNOWLEDGE INJECTION]: The user query matches symptoms for "${condition}". Use these valid medical facts: ${advice_am}. Please gracefully advise the user about this and pick one or more of these follow-up questions to ask: ${follow_up_questions_am.join(" OR ")}. Do not read this literal text, just use it to frame your knowledge in Amharic.\\n`;
+      }
+    });
+
+    if (ragInjection) {
+      console.log("RAG Match found, injecting silently to Assistant WS.", ragInjection);
+      sendTextMessage(ragInjection);
+    }
+  };
 
   // Auto scroll
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, liveTranscript]);
+
+  // Timer logic
+  useEffect(() => {
+    let interval: any;
+    if (callStarted) {
+      interval = setInterval(() => {
+        setTimer((prev) => prev + 1);
+      }, 1000);
+    } else {
+      clearInterval(interval);
+    }
+    return () => clearInterval(interval);
+  }, [callStarted]);
+
+  const formatTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60).toString().padStart(2, "0");
+    const s = (seconds % 60).toString().padStart(2, "0");
+    return `${m}:${s}`;
+  };
 
   useEffect(() => {
     if (sessionId) GetSessionDetails();
@@ -56,14 +162,14 @@ function MedicalVoiceAgent() {
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (vapiRef.current) {
-        try {
-          vapiRef.current.stop();
-        } catch {}
-        vapiRef.current = null;
+      if (isConnected || isStreaming) {
+        stopRealtime();
+      }
+      if (recognition) {
+        recognition.stop();
       }
     };
-  }, []);
+  }, [isConnected, isStreaming, stopRealtime, recognition]);
 
   const GetSessionDetails = async () => {
     try {
@@ -77,119 +183,43 @@ function MedicalVoiceAgent() {
     }
   };
 
-  const StartCall = () => {
-    if (vapiRef.current) {
-      console.warn("Call already exists.");
+  const StartCall = async () => {
+    if (isConnected || isStreaming || callStarted) {
+      console.warn("Call already exists or starting.");
       return;
     }
 
     setLoading(true);
+    setTimer(0);
 
-    const vapi = new Vapi(process.env.NEXT_PUBLIC_VAPI_API_KEY!);
-    vapiRef.current = vapi;
-
-    const config = {
-      name: "AI Medical Doctor Voice Agent",
-      firstMessage:
-        "Hi there! I'm your AI medical assistant. How can I assist you today?",
-      transcriber: {
-        provider: "assembly-ai",
-        language: "en",
-      },
-      voice: {
-        provider: "azure",
-        voiceId: sessionDetail?.selectedDoctor?.voiceId,
-      },
-      model: {
-        provider: "openai",
-        model: "gpt-4",
-        messages: [
-          {
-            role: "system",
-            content:
-              sessionDetail?.selectedDoctor?.agentPrompt ||
-              "You are a helpful and precise medical assistant.",
-          },
-        ],
-      },
-    };
-
-    // ✅ Define listeners
-    const handleCallStart = () => {
-      setCallStarted(true);
-      setLoading(false);
-    };
-
-    const handleCallEnd = () => {
-      setCallStarted(false);
-    };
-
-    const handleMessage = (message: any) => {
-      if (!message || message.type !== "transcript") return;
-
-      const { role, transcriptType, transcript } = message;
-      if (!role || !transcript) return;
-
-      if (transcriptType === "partial") {
-        setLiveTranscript(transcript);
-        setCurrentRole(role);
-      } else if (transcriptType === "final") {
-        setMessages((prev) => [...prev, { role, text: transcript }]);
-        setLiveTranscript("");
-        setCurrentRole(null);
+    try {
+      await startRealtime();
+      if (recognition) {
+        try {
+          recognition.start();
+        } catch (e) {
+            console.log("Recognition may already be running", e);
+        }
       }
-    };
-
-    const handleSpeechStart = () => setCurrentRole("assistant");
-    const handleSpeechEnd = () => setCurrentRole("user");
-
-    // Attach listeners
-    vapi.on("call-start", handleCallStart);
-    vapi.on("call-end", handleCallEnd);
-    vapi.on("message", handleMessage);
-    vapi.on("speech-start", handleSpeechStart);
-    vapi.on("speech-end", handleSpeechEnd);
-
-    // Save references for cleanup
-    listenersRef.current = {
-      handleCallStart,
-      handleCallEnd,
-      handleMessage,
-      handleSpeechStart,
-      handleSpeechEnd,
-    };
-    //@ts-ignore
-    vapi.start(config);
+      setCallStarted(true);
+      await playGreeting("ሰላም! እኔ የእርስዎ አርቴፊሻል ኢንተለጀንስ ዶክተር ነኝ። በምን ልርዳዎ?");
+      setLoading(false);
+    } catch (error) {
+      console.warn("Error starting call:", error);
+      setLoading(false);
+    }
   };
 
   const endCall = async () => {
-    if (!vapiRef.current) return;
-
     setLoading(true);
 
     try {
-      const vapi = vapiRef.current;
-
-      await vapi.stop();
-
-      const {
-        handleCallStart,
-        handleCallEnd,
-        handleMessage,
-        handleSpeechStart,
-        handleSpeechEnd,
-      } = listenersRef.current || {};
-
-      if (handleCallStart) vapi.off("call-start", handleCallStart);
-      if (handleCallEnd) vapi.off("call-end", handleCallEnd);
-      if (handleMessage) vapi.off("message", handleMessage);
-      if (handleSpeechStart) vapi.off("speech-start", handleSpeechStart);
-      if (handleSpeechEnd) vapi.off("speech-end", handleSpeechEnd);
-
-      vapiRef.current = null;
-      listenersRef.current = null;
+      stopRealtime();
+      if (recognition) {
+        recognition.stop();
+      }
     } catch (error) {
-      console.warn("Error stopping Vapi call:", error);
+      console.warn("Error stopping call:", error);
     }
 
     setCallStarted(false);
@@ -198,7 +228,7 @@ function MedicalVoiceAgent() {
     await GenerateReport();
 
     setLoading(false);
-    route.replace("/dashboard");
+    route.replace("/home");
   };
 
   const GenerateReport = async () => {
@@ -206,6 +236,7 @@ function MedicalVoiceAgent() {
       messages,
       sessionDetail,
       sessionId,
+      callDuration: formatTime(timer),
     });
 
     return result.data;
@@ -222,7 +253,7 @@ function MedicalVoiceAgent() {
           />
           {callStarted ? "Connected..." : "Not Connected"}
         </h2>
-        <h2 className="font-bold text-xl text-gray-400">00:00</h2>
+        <h2 className="font-bold text-xl text-gray-400">{formatTime(timer)}</h2>
       </div>
 
       {sessionDetail?.selectedDoctor?.image ? (
@@ -298,3 +329,4 @@ function MedicalVoiceAgent() {
 }
 
 export default MedicalVoiceAgent;
+
