@@ -18,6 +18,7 @@
     "@radix-ui/react-slot": "^1.2.4",
     "@react-three/fiber": "^9.5.0",
     "@tabler/icons-react": "^3.36.0",
+    "@types/three": "^0.183.1",
     "@vapi-ai/web": "^2.5.2",
     "axios": "^1.13.6",
     "class-variance-authority": "^0.7.1",

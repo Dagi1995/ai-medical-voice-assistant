@@ -23,16 +23,16 @@ export default function Home() {
 
   return (
     <div className="relative min-h-screen w-full bg-white dark:bg-[#0a0a0a] overflow-x-hidden selection:bg-purple-500/30">
-      
-      
+
+
 
       <div className="relative z-10 w-full h-full text-slate-900 dark:text-white">
         <Navbar opacity={navbarOpacity} />
 
         <HeroSection />
         <AdsStrip />
-        
-        
+
+
         <motion.section
           id="demo"
           initial={{ opacity: 0 }}
@@ -44,17 +44,15 @@ export default function Home() {
           <MedicalVoiceAgentDemo />
         </motion.section>
 
-          {/* fade out bottom */}
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/60 to-white dark:via-black/40 dark:to-black" />
-        </div>
 
-        {/* HERO GLOW */}
-        <div className="absolute left-1/2 top-48 -translate-x-1/2 w-[600px] h-[600px] rounded-full bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 blur-3xl" />
+          <div className="pointer-events-none -z-10 absolute inset-0 bg-gradient-to-b from-transparent via-white/60 to-white dark:via-black/40 dark:to-black" />
+
+        <div className="pointer-events-none -z-10 absolute left-1/2 top-48 -translate-x-1/2 w-[600px] h-[600px] rounded-full bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 blur-3xl" />
 
         <div className="relative max-w-7xl mx-auto">
-          {/* CENTER CONTENT */}
+
           <div className="relative z-10 mx-auto max-w-3xl text-center">
-            {/* TITLE + IMAGE */}
+
             <div className="relative mt-8">
               <motion.h1
                 initial={{ opacity: 0, y: 20 }}
@@ -67,7 +65,7 @@ export default function Home() {
                 </span>
               </motion.h1>
 
-              {/* IMAGE */}
+
               <div className="relative mx-auto max-w-xl -mt-16">
                 <Image
                   src="/robot1.png"
@@ -78,7 +76,6 @@ export default function Home() {
                   className="w-full h-auto object-cover"
                 />
 
-                {/* bottom soft fade */}
                 <div
                   className="pointer-events-none absolute inset-x-0 bottom-0 h-28
                   bg-gradient-to-t from-white via-white/80 to-transparent
@@ -87,13 +84,13 @@ export default function Home() {
               </div>
             </div>
 
-            {/* DESCRIPTION */}
+
             <p className="mt-8 text-lg text-slate-600 dark:text-slate-300">
               Speak naturally. Our AI listens, understands, and schedules
               appointments automatically — 24/7.
             </p>
 
-            {/* CTA */}
+
             <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
               <Link href="/sign-in">
                 <Button className="h-14 px-8 text-lg bg-gradient-to-r from-blue-600 to-purple-600 text-white">
@@ -108,10 +105,10 @@ export default function Home() {
               </Link>
             </div>
           </div>
-          {/* LEFT FEATURE CARD — CLIPPED CARD ONLY */}
+
           <div className="hidden lg:block absolute left-0 top-2/5 -translate-y-1/2">
             <div className="relative w-[460px] h-[260px] flex items-end gap-0 isolate">
-              {/* LEFT SMALL */}
+
               <div
                 className="
         h-[220px] w-[110px]
@@ -125,7 +122,7 @@ export default function Home() {
       "
               />
 
-              {/* MIDDLE BIG (MAIN) */}
+
               <div
                 className="
         relative z-10
@@ -139,7 +136,6 @@ export default function Home() {
       "
               />
 
-              {/* RIGHT SMALL */}
               <div
                 className="
         h-[220px] w-[110px]
@@ -153,7 +149,7 @@ export default function Home() {
       "
               />
 
-              {/* FLOATING IMAGE */}
+
               <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[320px] h-[420px] z-20 pointer-events-none">
                 <Image
                   src="/doctor-girl.png"
@@ -166,10 +162,9 @@ export default function Home() {
             </div>
           </div>
 
-          {/* RIGHT FEATURE CARD — Updated Colors + Real Online Avatars */}
           <div className="hidden lg:block absolute right-[-40] top-2/5 -translate-y-1/2">
             <div className="relative w-[360px] h-[260px] flex items-end gap-0 isolate">
-              {/* LEFT SMALL */}
+
               <div
                 className="
         h-[220px] w-[110px]
@@ -183,7 +178,6 @@ export default function Home() {
       "
               />
 
-              {/* MIDDLE BIG (MAIN FEATURE) */}
               <div
                 className="
         relative z-10
@@ -199,7 +193,7 @@ export default function Home() {
         p-6
       "
               >
-                {/* PARTIAL CIRCLE BADGE */}
+
                 <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-12">
                   <div
                     className="w-full h-full rounded-full bg-gradient-to-r from-yellow-400 to-orange-400 flex items-center justify-center
@@ -209,7 +203,7 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* CONTENT — REAL USER AVATARS */}
+
                 <div className="flex flex-col items-center mt-6">
                   <div className="flex -space-x-3">
                     <img
@@ -239,7 +233,7 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* RIGHT SMALL */}
+
               <div
                 className="
         h-[220px] w-[110px]
@@ -255,34 +249,21 @@ export default function Home() {
             </div>
           </div>
         </div>
-      </section>
-
-      {/* ================= DEMO ================= */}
-      <motion.section
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        transition={{ duration: 0.8 }}
-        viewport={{ amount: 0.3 }}
-        className="py-24"
-      >
-        <MedicalVoiceAgentDemo />
-      </motion.section>
-
-      <section className="py-16 px-4 bg-white dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-4">
-              Nearby Pharmacy Finder
-            </h2>
-            <p className="text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
-              Detect your location and display nearby pharmacies including name, distance, and address.
-            </p>
+        <section className="relative z-10 py-16 px-4 bg-white dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-4">
+                Nearby Pharmacy Finder
+              </h2>
+              <p className="text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
+                Detect your location and display nearby pharmacies including name, distance, and address.
+              </p>
+            </div>
+            <div className="flex justify-center">
+              <PharmacyFinder />
+            </div>
           </div>
-          <div className="flex justify-center">
-            <PharmacyFinder />
-          </div>
-        </div>
-      </section>
+        </section>
 
         <WhyUs />
         <Pricing />
@@ -310,9 +291,8 @@ const Navbar = ({ opacity }: NavbarProps) => {
 
   return (
     <motion.nav
-      className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-xl ${
-        scrolled ? "border-b border-slate-200/40 dark:border-slate-800/40 shadow-sm" : ""
-      }`}
+      className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-xl ${scrolled ? "border-b border-slate-200/40 dark:border-slate-800/40 shadow-sm" : ""
+        }`}
     >
       <motion.div
         style={{ opacity }}
@@ -327,19 +307,19 @@ const Navbar = ({ opacity }: NavbarProps) => {
           </span>
         </div>
 
-       <div className="hidden md:block">
-  <div className="relative rounded-full p-[2px] animate-gradient-x overflow-hidden bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 shadow-lg">
-    {/* Inner pill: normal background / foreground */}
-    <div className="bg-white/90 dark:bg-black/90 rounded-full px-8 py-2 flex gap-8 font-semibold text-sm cursor-pointer backdrop-blur-md">
-      <Link href="#" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors block">Home</Link>
-      <Link href="#demo" className="hover:text-purple-600 dark:hover:text-purple-400 transition-colors block">Demo</Link>
-      <Link href="#why-us" className="hover:text-pink-600 dark:hover:text-pink-400 transition-colors block">Why Us</Link>
-      <Link href="#pricing" className="hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors block">Pricing</Link>
-    </div>
-  </div>
-</div>
+        <div className="hidden md:block">
+          <div className="relative rounded-full p-[2px] animate-gradient-x overflow-hidden bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 shadow-lg">
 
-<style jsx>{`
+            <div className="bg-white/90 dark:bg-black/90 rounded-full px-8 py-2 flex gap-8 font-semibold text-sm cursor-pointer backdrop-blur-md">
+              <Link href="#" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors block">Home</Link>
+              <Link href="#demo" className="hover:text-purple-600 dark:hover:text-purple-400 transition-colors block">Demo</Link>
+              <Link href="#why-us" className="hover:text-pink-600 dark:hover:text-pink-400 transition-colors block">Why Us</Link>
+              <Link href="#pricing" className="hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors block">Pricing</Link>
+            </div>
+          </div>
+        </div>
+
+        <style jsx>{`
   @keyframes gradient-x {
     0%, 100% {
       background-position: 0% 50%;
