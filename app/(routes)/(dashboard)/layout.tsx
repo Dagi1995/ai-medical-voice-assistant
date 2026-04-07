@@ -1,5 +1,6 @@
 import React from "react";
 import Sidebar from "./_components/Sidebar";
+import DashboardTopBar from "./_components/DashboardTopBar";
 
 function DashboardLayout({
   children,
@@ -15,12 +16,15 @@ function DashboardLayout({
         <div className="absolute -bottom-10 left-[20%] w-[30rem] h-[30rem] bg-indigo-400/20 dark:bg-indigo-600/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-4000"></div>
       </div>
 
-      <div className="w-64 hidden md:block flex-shrink-0 relative z-10">
+      <div className="w-64 hidden md:block flex-shrink-0 relative z-20">
         <Sidebar />
       </div>
-      <div className="flex-1 flex flex-col pt-3 md:pt-4 h-full overflow-hidden w-full relative z-10">
+      <div className="flex-1 flex flex-col pt-3 md:pt-4 h-full overflow-hidden w-full relative z-20">
         <div className="bg-white/70 dark:bg-slate-900/60 backdrop-blur-2xl flex-1 rounded-tl-[2rem] shadow-xl border-t border-l border-white/50 dark:border-slate-700/50 overflow-hidden relative flex flex-col">
-          {children}
+          <DashboardTopBar />
+          <div className="flex-1 overflow-hidden">
+            {children}
+          </div>
         </div>
       </div>
     </div>

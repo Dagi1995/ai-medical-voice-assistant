@@ -22,14 +22,9 @@ const Dashboard = () => {
         <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
       </div>
 
-      <DashboardTopBar />
 
       <div className="flex-1 flex flex-col items-center justify-center p-4 relative z-10">
         
-       
-
-        
-
         {/* Main content */}
         <div className="text-center max-w-4xl mx-auto">
          

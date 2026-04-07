@@ -41,7 +41,6 @@ export const menuOptions = [
 
 const Sidebar = () => {
   const pathname = usePathname();
-  const { openUserProfile } = useClerk();
 
   return (
     <div className="w-64 h-full flex flex-col p-6 pb-12 bg-transparent justify-between">
@@ -76,14 +75,23 @@ const Sidebar = () => {
       </div>
 
       {/* Bottom Section */}
-      <div className="flex flex-col gap-2">
-       
-        <div 
-          onClick={() => openUserProfile()}
-          className="flex items-center gap-3 px-4 py-2 mt-1 rounded-xl cursor-pointer hover:bg-[#d6d6d6] dark:hover:bg-gray-800 transition-colors"
-        >
-          <UserButton afterSignOutUrl="/" />
-          <span className="font-medium text-[15px] text-gray-600 dark:text-gray-400 pointer-events-none">Setting</span>
+      <div className="flex flex-col gap-2 relative">
+        <div className="relative group flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer hover:bg-[#d6d6d6] dark:hover:bg-gray-800 transition-colors">
+          {/* Invisible UserButton overlay that triggers the dropdown */}
+          <div className="absolute inset-0 z-20 opacity-0 overflow-hidden cursor-pointer">
+             <UserButton 
+               afterSignOutUrl="/" 
+               appearance={{ 
+                 elements: { 
+                   userButtonTrigger: { width: '100%', height: '100%', cursor: 'pointer' },
+                   rootBox: { width: '100%', height: '100%' }
+                 } 
+               }} 
+             />
+          </div>
+          
+          <Settings className="w-5 h-5 text-gray-600 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white transition-colors" />
+          <span className="font-medium text-[15px] text-gray-600 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white transition-colors">Setting</span>
         </div>
       </div>
     </div>
