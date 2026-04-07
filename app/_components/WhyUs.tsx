@@ -42,7 +42,7 @@ export function WhyUs() {
 
       {/* Wrapping layer that ignores mouse commands so it drops through to the Orb underneath */}
       <div className="max-w-7xl mx-auto relative z-10 pointer-events-none">
-        
+
         {/* Enable pointing events locally for the text headers ensuring they copy/select normally */}
         <div className="text-center mb-16 pointer-events-auto">
           <h2 className="text-3xl md:text-5xl font-bold text-slate-900 dark:text-white mb-4 drop-shadow-sm">
@@ -64,7 +64,7 @@ export function WhyUs() {
                 transition={{ delay: i * 0.1 }}
                 viewport={{ once: true }}
                 // We enable pointing locally here so hover effects and clicks on the grid cards still function normally.
-                className="p-8 rounded-3xl bg-white/70 dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-lg hover:shadow-xl transition-all backdrop-blur-xl pointer-events-auto"
+                className="group p-8 rounded-3xl bg-white/70 dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-lg hover:shadow-2xl hover:-translate-y-3 hover:border-blue-500/40 dark:hover:border-blue-400/40 transition-all duration-300 ease-out backdrop-blur-xl pointer-events-auto"
               >
                 <div className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-500/20 flex items-center justify-center mb-6 text-blue-600 dark:text-blue-400">
                   <Icon size={24} />
