@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
 import { Users, Calendar, MessageSquare, Activity, ArrowUpRight, ArrowDownRight } from "lucide-react";
@@ -21,25 +21,37 @@ export default function AdminDashboard() {
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+
+  const fetchDashboardData = useCallback(async (isPolling = false) => {
+    try {
+      if (!isPolling) setLoading(true);
+      const response = await fetch('/api/admin/dashboard');
+      if (!response.ok) {
+        throw new Error('Failed to fetch dashboard data');
+      }
+      const result = await response.json();
+      setData(result);
+      setLastUpdated(new Date());
+      if (!isPolling) setError(null);
+    } catch (err: any) {
+      if (!isPolling) setError(err.message || 'An error occurred');
+      console.error('Polling error:', err);
+    } finally {
+      if (!isPolling) setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    async function fetchDashboardData() {
-      try {
-        const response = await fetch('/api/admin/dashboard');
-        if (!response.ok) {
-          throw new Error('Failed to fetch dashboard data');
-        }
-        const result = await response.json();
-        setData(result);
-      } catch (err: any) {
-        setError(err.message || 'An error occurred');
-      } finally {
-        setLoading(false);
-      }
-    }
+    fetchDashboardData(); // Initial execution
 
-    fetchDashboardData();
-  }, []);
+    // Polling setup: Can be easily replaced by WebSocket setup in the future
+    const intervalId = setInterval(() => {
+      fetchDashboardData(true);
+    }, 10000);
+
+    return () => clearInterval(intervalId); // Cleanup logic
+  }, [fetchDashboardData]);
 
   if (loading) {
     return (
@@ -75,7 +87,15 @@ export default function AdminDashboard() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl lg:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Overview Insights</h2>
-          <p className="text-slate-500 dark:text-slate-400 mt-1">Real-time performance and usage metrics of the AI Agent.</p>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-1">
+            <p className="text-slate-500 dark:text-slate-400 text-sm md:text-base">Real-time performance and usage metrics of the AI Agent.</p>
+            {lastUpdated && (
+              <span className="inline-flex max-w-max items-center text-xs font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-500/10 px-2.5 py-1 rounded-full">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 animate-pulse"></span>
+                Live updating {lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
