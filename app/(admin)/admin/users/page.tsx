@@ -14,6 +14,6 @@ const mockUsers = [
 
 export default function UserManagementPage() {
     return (
-        <div></div>
+        <div className="max-w-7xl mx-auto space-y-8"></div>
     );
 }
