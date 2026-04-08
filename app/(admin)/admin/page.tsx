@@ -22,11 +22,12 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [timeRange, setTimeRange] = useState<'daily' | 'weekly' | 'monthly'>('weekly');
 
-  const fetchDashboardData = useCallback(async (isPolling = false) => {
+  const fetchDashboardData = useCallback(async (isPolling = false, range = 'weekly') => {
     try {
       if (!isPolling) setLoading(true);
-      const response = await fetch('/api/admin/dashboard');
+      const response = await fetch(`/api/admin/dashboard?range=${range}`);
       if (!response.ok) {
         throw new Error('Failed to fetch dashboard data');
       }
@@ -43,15 +44,15 @@ export default function AdminDashboard() {
   }, []);
 
   useEffect(() => {
-    fetchDashboardData(); // Initial execution
+    fetchDashboardData(false, timeRange); // Initial execution
 
     // Polling setup: Can be easily replaced by WebSocket setup in the future
     const intervalId = setInterval(() => {
-      fetchDashboardData(true);
+      fetchDashboardData(true, timeRange);
     }, 10000);
 
     return () => clearInterval(intervalId); // Cleanup logic
-  }, [fetchDashboardData]);
+  }, [fetchDashboardData, timeRange]);
 
   if (loading) {
     return (
@@ -144,9 +145,27 @@ export default function AdminDashboard() {
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
           className="lg:col-span-2 p-6 rounded-3xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-sm"
         >
-          <div className="mb-6">
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white">System Usage Over Time</h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400">Comparing active users to total AI queries processed.</p>
+          <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">System Usage Over Time</h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400">Comparing active users to total AI queries processed.</p>
+            </div>
+            {/* Filter Toggle */}
+            <div className="flex bg-slate-100 dark:bg-white/5 p-1 rounded-xl w-max">
+              {(['daily', 'weekly', 'monthly'] as const).map((r) => (
+                <button
+                  key={r}
+                  onClick={() => setTimeRange(r)}
+                  className={`px-4 py-1.5 text-xs font-semibold rounded-lg capitalize transition-all duration-200 ${
+                    timeRange === r 
+                      ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm' 
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                  }`}
+                >
+                  {r}
+                </button>
+              ))}
+            </div>
           </div>
           <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
