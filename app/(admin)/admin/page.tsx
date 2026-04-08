@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
 import { Users, Calendar, MessageSquare, Activity, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import {
@@ -7,32 +9,65 @@ import {
   BarChart, Bar, Legend
 } from 'recharts';
 
-const kpiData = [
-  { title: "Total Users", value: "12,450", trend: "+14%", isPositive: true, icon: Users, color: "text-blue-500", bg: "bg-blue-500/10" },
-  { title: "Active Appointments", value: "342", trend: "+5%", isPositive: true, icon: Calendar, color: "text-purple-500", bg: "bg-purple-500/10" },
-  { title: "AI Interactions", value: "84.2K", trend: "+22%", isPositive: true, icon: MessageSquare, color: "text-pink-500", bg: "bg-pink-500/10" },
-  { title: "System Health", value: "99.9%", trend: "-0.1%", isPositive: false, icon: Activity, color: "text-emerald-500", bg: "bg-emerald-500/10" },
-];
-
-const usageData = [
-  { name: 'Mon', queries: 4000, users: 2400 },
-  { name: 'Tue', queries: 3000, users: 1398 },
-  { name: 'Wed', queries: 2000, users: 9800 },
-  { name: 'Thu', queries: 2780, users: 3908 },
-  { name: 'Fri', queries: 1890, users: 4800 },
-  { name: 'Sat', queries: 2390, users: 3800 },
-  { name: 'Sun', queries: 3490, users: 4300 },
-];
-
-const symptomData = [
-  { symptom: 'Headache', count: 450 },
-  { symptom: 'Fever', count: 380 },
-  { symptom: 'Cough', count: 320 },
-  { symptom: 'Fatigue', count: 210 },
-  { symptom: 'Nausea', count: 150 },
-];
-
 export default function AdminDashboard() {
+  const router = useRouter();
+  const [data, setData] = useState<{
+    totalUsers: string;
+    activeAppointments: string;
+    aiInteractions: string;
+    systemHealth: string;
+    usageData: any[];
+    symptomData: any[];
+  } | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchDashboardData() {
+      try {
+        const response = await fetch('/api/admin/dashboard');
+        if (!response.ok) {
+          throw new Error('Failed to fetch dashboard data');
+        }
+        const result = await response.json();
+        setData(result);
+      } catch (err: any) {
+        setError(err.message || 'An error occurred');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchDashboardData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto flex items-center justify-center min-h-[50vh]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-900 dark:border-white"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-7xl mx-auto flex items-center justify-center min-h-[50vh]">
+        <div className="text-rose-500 font-medium">Error: {error}</div>
+      </div>
+    );
+  }
+
+  if (!data) return null;
+
+  const kpiData = [
+    { title: "Total Users", value: data.totalUsers, trend: "+14%", isPositive: true, icon: Users, color: "text-blue-500", bg: "bg-blue-500/10", route: "/admin/users" },
+    { title: "Active Appointments", value: data.activeAppointments, trend: "+5%", isPositive: true, icon: Calendar, color: "text-purple-500", bg: "bg-purple-500/10", route: "/admin/appointments" },
+    { title: "AI Interactions", value: data.aiInteractions, trend: "+22%", isPositive: true, icon: MessageSquare, color: "text-pink-500", bg: "bg-pink-500/10", route: "/admin/ai-monitoring" },
+    { title: "System Health", value: data.systemHealth, trend: "-0.1%", isPositive: false, icon: Activity, color: "text-emerald-500", bg: "bg-emerald-500/10", route: "/admin/system-health" },
+  ];
+
+  const { usageData, symptomData } = data;
+
   return (
     <div className="max-w-7xl mx-auto space-y-6 lg:space-y-8">
 
@@ -54,7 +89,17 @@ export default function AdminDashboard() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.1 }}
-              className="p-6 rounded-3xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-sm"
+              whileHover={{ scale: 1.02 }}
+              onClick={() => router.push(kpi.route)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  router.push(kpi.route);
+                }
+              }}
+              className="p-6 rounded-3xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-sm hover:shadow-md cursor-pointer transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900"
             >
               <div className="flex items-center justify-between mb-4">
                 <div className={`p-3 rounded-2xl ${kpi.bg} ${kpi.color}`}>
