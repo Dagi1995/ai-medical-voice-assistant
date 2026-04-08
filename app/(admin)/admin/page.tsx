@@ -2,8 +2,8 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "motion/react";
-import { Users, Calendar, MessageSquare, Activity, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
+import { Users, Calendar, MessageSquare, Activity, ArrowUpRight, ArrowDownRight, X } from "lucide-react";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   BarChart, Bar, Legend
@@ -23,6 +23,7 @@ export default function AdminDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [timeRange, setTimeRange] = useState<'daily' | 'weekly' | 'monthly'>('weekly');
+  const [modalData, setModalData] = useState<{type: 'usage' | 'symptom', payload: any} | null>(null);
 
   const fetchDashboardData = useCallback(async (isPolling = false, range = 'weekly') => {
     try {
@@ -169,7 +170,17 @@ export default function AdminDashboard() {
           </div>
           <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={usageData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <AreaChart 
+                 data={usageData} 
+                 margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                 onClick={(e) => {
+                   if (e && e.activePayload) {
+                     console.log("Area Chart clicked:", e.activePayload[0].payload);
+                     setModalData({ type: 'usage', payload: e.activePayload[0].payload });
+                   }
+                 }}
+                 style={{ cursor: 'pointer' }}
+              >
                 <defs>
                   <linearGradient id="colorQueries" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
@@ -214,13 +225,83 @@ export default function AdminDashboard() {
                   cursor={{ fill: 'rgba(255,255,255,0.05)' }}
                   contentStyle={{ backgroundColor: '#0a0a0a', borderColor: '#1e293b', borderRadius: '12px', color: '#fff' }}
                 />
-                <Bar dataKey="count" name="Reported Cases" fill="#f43f5e" radius={[0, 4, 4, 0]} barSize={24} />
+                <Bar 
+                  dataKey="count" 
+                  name="Reported Cases" 
+                  fill="#f43f5e" 
+                  radius={[0, 4, 4, 0]} 
+                  barSize={24}
+                  cursor="pointer"
+                  onClick={(data) => {
+                    console.log("Bar clicked:", data);
+                    setModalData({ type: 'symptom', payload: data });
+                  }} 
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </motion.div>
 
       </div>
+      {/* Detail Modal */}
+      <AnimatePresence>
+        {modalData && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm"
+            onClick={() => setModalData(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-xl border border-slate-200 dark:border-white/10 max-w-md w-full relative"
+            >
+              <button
+                onClick={() => setModalData(null)}
+                className="absolute top-4 right-4 p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white bg-slate-100 dark:bg-white/5 rounded-full transition-colors"
+                aria-label="Close modal"
+              >
+                <X className="w-5 h-5" />
+              </button>
+              
+              {modalData.type === 'usage' ? (
+                <div>
+                  <h4 className="text-xl font-bold text-slate-900 dark:text-white mb-6 pr-8">
+                    Usage Analytics ({modalData.payload.name})
+                  </h4>
+                  <div className="space-y-4">
+                    <div className="bg-blue-50 dark:bg-blue-500/10 p-5 rounded-2xl flex justify-between items-center border border-blue-100 dark:border-blue-500/20">
+                      <span className="text-blue-600 dark:text-blue-400 font-medium">AI Queries</span>
+                      <span className="text-2xl font-bold text-blue-700 dark:text-blue-300">{modalData.payload.queries}</span>
+                    </div>
+                    <div className="bg-purple-50 dark:bg-purple-500/10 p-5 rounded-2xl flex justify-between items-center border border-purple-100 dark:border-purple-500/20">
+                      <span className="text-purple-600 dark:text-purple-400 font-medium">Active Users</span>
+                      <span className="text-2xl font-bold text-purple-700 dark:text-purple-300">{modalData.payload.users}</span>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <h4 className="text-xl font-bold text-slate-900 dark:text-white mb-6 pr-8">
+                    Symptom Analysis ({modalData.payload.symptom})
+                  </h4>
+                  <div className="bg-rose-50 dark:bg-rose-500/10 p-5 rounded-2xl flex justify-between items-center border border-rose-100 dark:border-rose-500/20">
+                    <span className="text-rose-600 dark:text-rose-400 font-medium">Reported Cases</span>
+                    <span className="text-2xl font-bold text-rose-700 dark:text-rose-300">{modalData.payload.count}</span>
+                  </div>
+                  <p className="mt-5 text-sm text-slate-600 dark:text-slate-400 leading-relaxed p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5">
+                    Detailed insights and related case documentation for patient queries presenting with <strong>{modalData.payload.symptom}</strong>. 
+                  </p>
+                </div>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
