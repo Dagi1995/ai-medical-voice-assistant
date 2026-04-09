@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
-import { Users, Calendar, MessageSquare, Activity, ArrowUpRight, ArrowDownRight, X, UserPlus, Clock, AlertTriangle, AlertCircle, Info } from "lucide-react";
+import { Users, Calendar, MessageSquare, Activity, ArrowUpRight, ArrowDownRight, X, UserPlus, Clock, AlertTriangle, AlertCircle, Info, Bell } from "lucide-react";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   BarChart, Bar, Legend
@@ -293,44 +293,91 @@ export default function AdminDashboard() {
 
       </div>
 
-      {/* Recent Activity Feed */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}
-        className="p-6 rounded-3xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-sm"
-      >
-        <div className="mb-6 flex justify-between items-center">
-          <div>
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Recent Activity</h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400">Latest actions and events across the system.</p>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+        {/* Recent Activity Feed */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}
+          className="lg:col-span-2 p-6 rounded-3xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-sm flex flex-col"
+        >
+          <div className="mb-6 flex justify-between items-center">
+            <div>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">Recent Activity</h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400">Latest actions and events across the system.</p>
+            </div>
+            <button className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300">View All</button>
           </div>
-          <button className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300">View All</button>
-        </div>
-        
-        <div className="space-y-4 max-h-[350px] overflow-y-auto pr-2">
-          {(data.recentActivities || []).map((activity) => {
-            const Icon = activity.type === 'user' ? UserPlus : activity.type === 'ai' ? MessageSquare : activity.type === 'appointment' ? Calendar : Activity;
-            return (
-              <div key={activity.id} className="flex items-start gap-4 p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors">
-                <div className={`p-2.5 rounded-xl flex-shrink-0 ${
-                  activity.type === 'user' ? 'bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400' : 
-                  activity.type === 'ai' ? 'bg-pink-100 text-pink-600 dark:bg-pink-500/20 dark:text-pink-400' : 
-                  activity.type === 'appointment' ? 'bg-purple-100 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400' : 
-                  'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400'
-                }`}>
-                  <Icon className="w-5 h-5" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-slate-900 dark:text-white font-medium text-sm truncate">{activity.title}</p>
-                  <div className="flex items-center gap-1.5 mt-1 text-xs text-slate-500 dark:text-slate-400">
-                    <Clock className="w-3 h-3" />
-                    <span>{activity.time}</span>
+          
+          <div className="space-y-4 max-h-[350px] overflow-y-auto pr-2">
+            {(data.recentActivities || []).map((activity) => {
+              const Icon = activity.type === 'user' ? UserPlus : activity.type === 'ai' ? MessageSquare : activity.type === 'appointment' ? Calendar : Activity;
+              return (
+                <div key={activity.id} className="flex items-start gap-4 p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors">
+                  <div className={`p-2.5 rounded-xl flex-shrink-0 ${
+                    activity.type === 'user' ? 'bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400' : 
+                    activity.type === 'ai' ? 'bg-pink-100 text-pink-600 dark:bg-pink-500/20 dark:text-pink-400' : 
+                    activity.type === 'appointment' ? 'bg-purple-100 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400' : 
+                    'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400'
+                  }`}>
+                    <Icon className="w-5 h-5" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-slate-900 dark:text-white font-medium text-sm truncate">{activity.title}</p>
+                    <div className="flex items-center gap-1.5 mt-1 text-xs text-slate-500 dark:text-slate-400">
+                      <Clock className="w-3 h-3" />
+                      <span>{activity.time}</span>
+                    </div>
                   </div>
                 </div>
+              );
+            })}
+          </div>
+        </motion.div>
+
+        {/* Quick Actions Panel */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }}
+          className="p-6 rounded-3xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-sm flex flex-col"
+        >
+          <div className="mb-6">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Quick Actions</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400">Frequently used shortcuts.</p>
+          </div>
+          <div className="flex flex-col gap-3 flex-1">
+            <button 
+              onClick={() => router.push('/admin/users/new')}
+              className="flex items-center gap-3 p-4 rounded-2xl border border-slate-200 dark:border-white/10 hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 hover:text-blue-600 dark:hover:text-blue-400 transition-all text-slate-700 dark:text-slate-300 font-medium group text-sm"
+            >
+              <div className="p-2 rounded-xl bg-slate-100 dark:bg-white/10 group-hover:bg-blue-100 dark:group-hover:bg-blue-500/20 transition-colors">
+                <UserPlus className="w-5 h-5" />
               </div>
-            );
-          })}
-        </div>
-      </motion.div>
+              <span className="flex-1 text-left">Add User</span>
+              <ArrowUpRight className="w-4 h-4 opacity-50 group-hover:opacity-100" />
+            </button>
+
+            <button 
+              onClick={() => router.push('/admin/appointments/new')}
+              className="flex items-center gap-3 p-4 rounded-2xl border border-slate-200 dark:border-white/10 hover:border-purple-500 hover:bg-purple-50 dark:hover:bg-purple-500/10 hover:text-purple-600 dark:hover:text-purple-400 transition-all text-slate-700 dark:text-slate-300 font-medium group text-sm"
+            >
+              <div className="p-2 rounded-xl bg-slate-100 dark:bg-white/10 group-hover:bg-purple-100 dark:group-hover:bg-purple-500/20 transition-colors">
+                <Calendar className="w-5 h-5" />
+              </div>
+              <span className="flex-1 text-left">Create Appointment</span>
+              <ArrowUpRight className="w-4 h-4 opacity-50 group-hover:opacity-100" />
+            </button>
+
+            <button 
+              onClick={() => console.log('Open Send Notification Modal')}
+              className="flex items-center gap-3 p-4 rounded-2xl border border-slate-200 dark:border-white/10 hover:border-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all text-slate-700 dark:text-slate-300 font-medium group text-sm"
+            >
+              <div className="p-2 rounded-xl bg-slate-100 dark:bg-white/10 group-hover:bg-emerald-100 dark:group-hover:bg-emerald-500/20 transition-colors">
+                <Bell className="w-5 h-5" />
+              </div>
+              <span className="flex-1 text-left">Send Notification</span>
+              <ArrowUpRight className="w-4 h-4 opacity-50 group-hover:opacity-100" />
+            </button>
+          </div>
+        </motion.div>
+      </div>
 
       {/* Detail Modal */}
       <AnimatePresence>
