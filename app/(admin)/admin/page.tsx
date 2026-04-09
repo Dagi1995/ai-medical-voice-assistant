@@ -3,11 +3,12 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
-import { Users, Calendar, MessageSquare, Activity, ArrowUpRight, ArrowDownRight, X } from "lucide-react";
+import { Users, Calendar, MessageSquare, Activity, ArrowUpRight, ArrowDownRight, X, UserPlus, Clock } from "lucide-react";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   BarChart, Bar, Legend
 } from 'recharts';
+
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -18,6 +19,7 @@ export default function AdminDashboard() {
     systemHealth: string;
     usageData: any[];
     symptomData: any[];
+    recentActivities: any[];
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -173,7 +175,7 @@ export default function AdminDashboard() {
               <AreaChart 
                  data={usageData} 
                  margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-                 onClick={(e) => {
+                 onClick={(e: any) => {
                    if (e && e.activePayload) {
                      console.log("Area Chart clicked:", e.activePayload[0].payload);
                      setModalData({ type: 'usage', payload: e.activePayload[0].payload });
@@ -243,6 +245,46 @@ export default function AdminDashboard() {
         </motion.div>
 
       </div>
+
+      {/* Recent Activity Feed */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}
+        className="p-6 rounded-3xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-sm"
+      >
+        <div className="mb-6 flex justify-between items-center">
+          <div>
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Recent Activity</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400">Latest actions and events across the system.</p>
+          </div>
+          <button className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300">View All</button>
+        </div>
+        
+        <div className="space-y-4 max-h-[350px] overflow-y-auto pr-2">
+          {(data.recentActivities || []).map((activity) => {
+            const Icon = activity.type === 'user' ? UserPlus : activity.type === 'ai' ? MessageSquare : activity.type === 'appointment' ? Calendar : Activity;
+            return (
+              <div key={activity.id} className="flex items-start gap-4 p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors">
+                <div className={`p-2.5 rounded-xl flex-shrink-0 ${
+                  activity.type === 'user' ? 'bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400' : 
+                  activity.type === 'ai' ? 'bg-pink-100 text-pink-600 dark:bg-pink-500/20 dark:text-pink-400' : 
+                  activity.type === 'appointment' ? 'bg-purple-100 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400' : 
+                  'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400'
+                }`}>
+                  <Icon className="w-5 h-5" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-slate-900 dark:text-white font-medium text-sm truncate">{activity.title}</p>
+                  <div className="flex items-center gap-1.5 mt-1 text-xs text-slate-500 dark:text-slate-400">
+                    <Clock className="w-3 h-3" />
+                    <span>{activity.time}</span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </motion.div>
+
       {/* Detail Modal */}
       <AnimatePresence>
         {modalData && (

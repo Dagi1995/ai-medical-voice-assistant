@@ -45,6 +45,13 @@ export async function GET(request: Request) {
       { symptom: 'Cough', count: 320 },
       { symptom: 'Fatigue', count: 210 },
       { symptom: 'Nausea', count: 150 },
+    ],
+    recentActivities: [
+      { id: 1, type: 'user', title: 'New User Registered: John Doe', time: '2 mins ago' },
+      { id: 2, type: 'ai', title: 'AI completed symptom analysis for Patient #1024', time: '15 mins ago' },
+      { id: 3, type: 'appointment', title: 'Appointment updated by Dr. Smith', time: '1 hour ago' },
+      { id: 4, type: 'user', title: 'New User Registered: Jane Roe', time: '2 hours ago' },
+      { id: 5, type: 'system', title: 'System health check completed successfully', time: '3 hours ago' },
     ]
   });
 }
