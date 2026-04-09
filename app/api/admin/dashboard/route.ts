@@ -52,6 +52,11 @@ export async function GET(request: Request) {
       { id: 3, type: 'appointment', title: 'Appointment updated by Dr. Smith', time: '1 hour ago' },
       { id: 4, type: 'user', title: 'New User Registered: Jane Roe', time: '2 hours ago' },
       { id: 5, type: 'system', title: 'System health check completed successfully', time: '3 hours ago' },
+    ],
+    alerts: [
+      { id: 101, type: 'critical', title: 'High-risk medical case detected', message: 'Patient #8492 exhibiting severe symptoms requiring immediate attention.', time: 'Just now' },
+      { id: 102, type: 'warning', title: 'AI Hallucination Warning', message: 'Potential anomaly in diagnosis generation for query #A-992. Review recommended.', time: '10 mins ago' },
+      { id: 103, type: 'info', title: 'System Maintenance Scheduled', message: 'Downtime expected on Saturday from 2:00 AM to 4:00 AM UTC.', time: '2 hours ago' },
     ]
   });
 }

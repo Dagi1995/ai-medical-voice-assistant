@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
-import { Users, Calendar, MessageSquare, Activity, ArrowUpRight, ArrowDownRight, X, UserPlus, Clock } from "lucide-react";
+import { Users, Calendar, MessageSquare, Activity, ArrowUpRight, ArrowDownRight, X, UserPlus, Clock, AlertTriangle, AlertCircle, Info } from "lucide-react";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   BarChart, Bar, Legend
@@ -20,12 +20,14 @@ export default function AdminDashboard() {
     usageData: any[];
     symptomData: any[];
     recentActivities: any[];
+    alerts: any[];
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [timeRange, setTimeRange] = useState<'daily' | 'weekly' | 'monthly'>('weekly');
   const [modalData, setModalData] = useState<{type: 'usage' | 'symptom', payload: any} | null>(null);
+  const [dismissedAlerts, setDismissedAlerts] = useState<Set<number>>(new Set());
 
   const fetchDashboardData = useCallback(async (isPolling = false, range = 'weekly') => {
     try {
@@ -102,6 +104,51 @@ export default function AdminDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Alert System */}
+      <AnimatePresence>
+        {data.alerts && data.alerts.filter((a) => !dismissedAlerts.has(a.id)).length > 0 && (
+          <div className="flex flex-col gap-3">
+            {data.alerts.filter((a) => !dismissedAlerts.has(a.id)).map((alert) => {
+              const isCritical = alert.type === 'critical';
+              const isWarning = alert.type === 'warning';
+              
+              const Icon = isCritical ? AlertCircle : isWarning ? AlertTriangle : Info;
+              const bgClass = isCritical ? 'bg-rose-50 dark:bg-rose-500/10 border-rose-200 dark:border-rose-500/20 text-rose-900 dark:text-rose-200' 
+                : isWarning ? 'bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/20 text-amber-900 dark:text-amber-200' 
+                : 'bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-500/20 text-blue-900 dark:text-blue-200';
+              const iconColor = isCritical ? 'text-rose-500 dark:text-rose-400' : isWarning ? 'text-amber-600 dark:text-amber-400' : 'text-blue-500 dark:text-blue-400';
+
+              return (
+                <motion.div
+                  key={alert.id}
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  className={`flex items-start gap-4 p-4 rounded-2xl border ${bgClass} relative pr-12`}
+                >
+                  <Icon className={`w-6 h-6 flex-shrink-0 mt-0.5 ${iconColor}`} />
+                  <div>
+                    <h4 className="font-semibold text-sm md:text-base">{alert.title}</h4>
+                    <p className="text-sm mt-1 opacity-90">{alert.message}</p>
+                    <span className="text-xs font-medium opacity-75 mt-2 block">{alert.time}</span>
+                  </div>
+                  <button
+                    onClick={() => {
+                      const newSet = new Set(dismissedAlerts);
+                      newSet.add(alert.id);
+                      setDismissedAlerts(newSet);
+                    }}
+                    className="absolute top-4 right-4 p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
