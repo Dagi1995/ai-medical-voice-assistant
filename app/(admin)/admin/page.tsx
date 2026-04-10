@@ -8,6 +8,7 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   BarChart, Bar, Legend
 } from 'recharts';
+import socket from '@/lib/socket';
 
 
 export default function AdminDashboard() {
@@ -51,12 +52,19 @@ export default function AdminDashboard() {
   useEffect(() => {
     fetchDashboardData(false, timeRange); // Initial execution
 
-    // Polling setup: Can be easily replaced by WebSocket setup in the future
-    const intervalId = setInterval(() => {
+    // Real-time Socket.io Updates (Replaces HTTP Polling)
+    const handleRemoteUpdate = () => {
+      console.log('[Socket.io] Real-time DB notification received! Syncing dashboard...');
       fetchDashboardData(true, timeRange);
-    }, 10000);
+    };
 
-    return () => clearInterval(intervalId); // Cleanup logic
+    socket.on('user:update', handleRemoteUpdate);
+    socket.on('appointment:update', handleRemoteUpdate);
+
+    return () => {
+      socket.off('user:update', handleRemoteUpdate);
+      socket.off('appointment:update', handleRemoteUpdate);
+    };
   }, [fetchDashboardData, timeRange]);
 
   if (loading) {
