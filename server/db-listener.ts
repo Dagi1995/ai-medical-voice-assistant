@@ -1,4 +1,7 @@
 import { Client } from 'pg';
+import { io } from './socket';
+import { db } from '../config/db';
+import { usersTable, sessionsChatTable } from '../config/schema';
 
 const connectionString = process.env.DATABASE_URL;
 
@@ -37,15 +40,27 @@ class DatabaseListener {
       this.scheduleReconnect();
     });
 
-    this.client.on('notification', (msg) => {
+    this.client.on('notification', async (msg) => {
       console.log(`[DB Notification] Channel: ${msg.channel}`);
-      if (msg.payload) {
-        try {
+      
+      try {
+        // Handle Socket mapping
+        if (msg.channel === 'user_update') {
+          const users = await db.select().from(usersTable);
+          io.emit('user:update', users);
+          console.log(`Socket Emitted: 'user:update' with ${users.length} users`);
+        } else if (msg.channel === 'appointment_update') {
+          const appointments = await db.select().from(sessionsChatTable);
+          io.emit('appointment:update', appointments);
+          console.log(`Socket Emitted: 'appointment:update' with ${appointments.length} records`);
+        }
+
+        if (msg.payload) {
           const payload = JSON.parse(msg.payload);
           console.log(`Payload:`, payload);
-        } catch (e) {
-          console.log(`Payload (Raw):`, msg.payload);
         }
+      } catch (err: any) {
+        console.error('Error handling DB notification:', err.message);
       }
     });
 
