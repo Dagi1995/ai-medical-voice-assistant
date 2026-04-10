@@ -1,7 +1,9 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion } from "motion/react";
 import { Search, Shield, ShieldBan, MoreVertical, ActivitySquare } from "lucide-react";
+import socket from "@/lib/socket";
 import { Button } from "@/components/ui/button";
 
 const mockUsers = [
@@ -13,6 +15,33 @@ const mockUsers = [
 ];
 
 export default function UserManagementPage() {
+    const [users, setUsers] = useState<any[]>(mockUsers);
+
+    useEffect(() => {
+        const handleUserUpdate = (updatedUsers: any[]) => {
+            console.log("[Socket] user:update received", updatedUsers);
+            
+            // Map the raw database schema onto the UI expected structure
+            // Real fields: id, name, email, credits
+            const formattedUsers = updatedUsers.map(u => ({
+                id: String(u.id),
+                name: u.name,
+                email: u.email,
+                role: u.role || "Patient", // Defaulting role since it is not in the schema yet
+                status: "Active",
+                lastActive: "Just now"
+            }));
+            
+            setUsers(formattedUsers.reverse()); // Show newest first
+        };
+
+        socket.on("user:update", handleUserUpdate);
+
+        return () => {
+            socket.off("user:update", handleUserUpdate);
+        };
+    }, []);
+
     return (
         <div className="max-w-7xl mx-auto space-y-8">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -46,7 +75,7 @@ export default function UserManagementPage() {
                             </tr>
                         </thead>
                         <tbody>
-                            {mockUsers.map((user, i) => (
+                            {users.map((user, i) => (
                                 <tr key={user.id} className="border-b border-slate-100 dark:border-white/5 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
                                     <td className="px-6 py-4">
                                         <div className="flex items-center">
@@ -60,7 +89,7 @@ export default function UserManagementPage() {
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">
-                                        [4/8/2026 5:37 AM] Boni: <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-white/10 text-slate-800 dark:text-slate-200">
+                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-white/10 text-slate-800 dark:text-slate-200">
                                             {user.role}
                                         </span>
                                     </td>
