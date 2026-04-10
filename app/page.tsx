@@ -1,5 +1,6 @@
 "use client";
-
+import { useRouter } from "next/navigation";
+import { toast, Toaster } from "sonner";
 import { motion, useScroll, useTransform } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { MedicalVoiceAgentDemo } from "./_components/Feature3dGrid";
@@ -16,22 +17,35 @@ import { WhyUs } from "./_components/WhyUs";
 import { Pricing } from "./_components/Pricing";
 import { Footer } from "./_components/Footer";
 
-
 export default function Home() {
   const { scrollY } = useScroll();
+  const [showTop, setShowTop] = useState(false);
   const navbarOpacity = useTransform(scrollY, [0, 80], [0.75, 0.95]);
+  const router = useRouter();
+  const [loadingDemo, setLoadingDemo] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLoadingDemo(false), 1500); // 1.5s
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowTop(window.scrollY > 300);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
     <div className="relative min-h-screen w-full bg-white dark:bg-[#0a0a0a] overflow-x-hidden selection:bg-purple-500/30">
-
-
+      <Toaster position="top-right" />
 
       <div className="relative z-10 w-full h-full text-slate-900 dark:text-white">
         <Navbar opacity={navbarOpacity} />
 
         <HeroSection />
         <AdsStrip />
-
 
         <motion.section
           id="demo"
@@ -41,18 +55,19 @@ export default function Home() {
           viewport={{ amount: 0.3 }}
           className="py-24 relative bg-white dark:bg-[#0a0a0a]"
         >
-          <MedicalVoiceAgentDemo />
+          {loadingDemo ? (
+            <div className="animate-pulse h-[400px] w-full rounded-xl bg-slate-200 dark:bg-slate-800" />
+          ) : (
+            <MedicalVoiceAgentDemo />
+          )}
         </motion.section>
 
-
-          <div className="pointer-events-none -z-10 absolute inset-0 bg-gradient-to-b from-transparent via-white/60 to-white dark:via-black/40 dark:to-black" />
+        <div className="pointer-events-none -z-10 absolute inset-0 bg-gradient-to-b from-transparent via-white/60 to-white dark:via-black/40 dark:to-black" />
 
         <div className="pointer-events-none -z-10 absolute left-1/2 top-48 -translate-x-1/2 w-[600px] h-[600px] rounded-full bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 blur-3xl" />
 
         <div className="relative max-w-7xl mx-auto">
-
           <div className="relative z-10 mx-auto max-w-3xl text-center">
-
             <div className="relative mt-8">
               <motion.h1
                 initial={{ opacity: 0, y: 20 }}
@@ -64,7 +79,6 @@ export default function Home() {
                   Health with AI Agent
                 </span>
               </motion.h1>
-
 
               <div className="relative mx-auto max-w-xl -mt-16">
                 <Image
@@ -84,16 +98,19 @@ export default function Home() {
               </div>
             </div>
 
-
             <p className="mt-8 text-lg text-slate-600 dark:text-slate-300">
               Speak naturally. Our AI listens, understands, and schedules
               appointments automatically — 24/7.
             </p>
 
-
             <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
               <Link href="/sign-in">
-                <Button className="h-14 px-8 text-lg bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+                <Button
+                  onClick={() => {
+                    toast("Welcome to MedAI🚀");
+                  }}
+                  className="h-14 px-8 text-lg bg-gradient-to-r from-blue-600 to-purple-600 text-white"
+                >
                   Get Started
                 </Button>
               </Link>
@@ -108,7 +125,6 @@ export default function Home() {
 
           <div className="hidden lg:block absolute left-0 top-2/5 -translate-y-1/2">
             <div className="relative w-[460px] h-[260px] flex items-end gap-0 isolate">
-
               <div
                 className="
         h-[220px] w-[110px]
@@ -121,7 +137,6 @@ export default function Home() {
         -top-2
       "
               />
-
 
               <div
                 className="
@@ -149,7 +164,6 @@ export default function Home() {
       "
               />
 
-
               <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[320px] h-[420px] z-20 pointer-events-none">
                 <Image
                   src="/doctor-girl.png"
@@ -164,7 +178,6 @@ export default function Home() {
 
           <div className="hidden lg:block absolute right-[-40] top-2/5 -translate-y-1/2">
             <div className="relative w-[360px] h-[260px] flex items-end gap-0 isolate">
-
               <div
                 className="
         h-[220px] w-[110px]
@@ -193,7 +206,6 @@ export default function Home() {
         p-6
       "
               >
-
                 <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-12">
                   <div
                     className="w-full h-full rounded-full bg-gradient-to-r from-yellow-400 to-orange-400 flex items-center justify-center
@@ -202,7 +214,6 @@ export default function Home() {
                     <span className="font-bold text-white text-sm">24</span>
                   </div>
                 </div>
-
 
                 <div className="flex flex-col items-center mt-6">
                   <div className="flex -space-x-3">
@@ -233,7 +244,6 @@ export default function Home() {
                 </div>
               </div>
 
-
               <div
                 className="
         h-[220px] w-[110px]
@@ -256,7 +266,8 @@ export default function Home() {
                 Nearby Pharmacy Finder
               </h2>
               <p className="text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
-                Detect your location and display nearby pharmacies including name, distance, and address.
+                Detect your location and display nearby pharmacies including
+                name, distance, and address.
               </p>
             </div>
             <div className="flex justify-center">
@@ -268,12 +279,18 @@ export default function Home() {
         <WhyUs />
         <Pricing />
         <Footer />
+        {showTop && (
+          <button
+            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+            className="fixed bottom-6 right-6 z-50 bg-gradient-to-r from-blue-500 to-purple-500 text-white px-4 py-2 rounded-full shadow-lg hover:scale-110 transition"
+          >
+            ↑ Top
+          </button>
+        )}
       </div>
-
     </div>
   );
 }
-
 
 interface NavbarProps {
   opacity: any;
@@ -291,8 +308,11 @@ const Navbar = ({ opacity }: NavbarProps) => {
 
   return (
     <motion.nav
-      className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-xl ${scrolled ? "border-b border-slate-200/40 dark:border-slate-800/40 shadow-sm" : ""
-        }`}
+      className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-xl ${
+        scrolled
+          ? "border-b border-slate-200/40 dark:border-slate-800/40 shadow-sm"
+          : ""
+      }`}
     >
       <motion.div
         style={{ opacity }}
@@ -309,31 +329,51 @@ const Navbar = ({ opacity }: NavbarProps) => {
 
         <div className="hidden md:block">
           <div className="relative rounded-full p-[2px] animate-gradient-x overflow-hidden bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 shadow-lg">
-
             <div className="bg-white/90 dark:bg-black/90 rounded-full px-8 py-2 flex gap-8 font-semibold text-sm cursor-pointer backdrop-blur-md">
-              <Link href="#" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors block">Home</Link>
-              <Link href="#demo" className="hover:text-purple-600 dark:hover:text-purple-400 transition-colors block">Demo</Link>
-              <Link href="#why-us" className="hover:text-pink-600 dark:hover:text-pink-400 transition-colors block">Why Us</Link>
-              <Link href="#pricing" className="hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors block">Pricing</Link>
+              <Link
+                href="#"
+                className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors block"
+              >
+                Home
+              </Link>
+              <Link
+                href="#demo"
+                className="hover:text-purple-600 dark:hover:text-purple-400 transition-colors block"
+              >
+                Demo
+              </Link>
+              <Link
+                href="#why-us"
+                className="hover:text-pink-600 dark:hover:text-pink-400 transition-colors block"
+              >
+                Why Us
+              </Link>
+              <Link
+                href="#pricing"
+                className="hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors block"
+              >
+                Pricing
+              </Link>
             </div>
           </div>
         </div>
 
         <style jsx>{`
-  @keyframes gradient-x {
-    0%, 100% {
-      background-position: 0% 50%;
-    }
-    50% {
-      background-position: 100% 50%;
-    }
-  }
+          @keyframes gradient-x {
+            0%,
+            100% {
+              background-position: 0% 50%;
+            }
+            50% {
+              background-position: 100% 50%;
+            }
+          }
 
-  .animate-gradient-x {
-    background-size: 200% 200%;
-    animation: gradient-x 3s ease infinite;
-  }
-`}</style>
+          .animate-gradient-x {
+            background-size: 200% 200%;
+            animation: gradient-x 3s ease infinite;
+          }
+        `}</style>
 
         {!user ? (
           <Link href="/sign-in">
