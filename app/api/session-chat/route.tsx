@@ -3,7 +3,7 @@ import { sessionsChatTable } from "@/config/schema";
 import { currentUser } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, sql } from "drizzle-orm";
 
 export async function POST(req: NextRequest) {
   try {
@@ -21,6 +21,9 @@ export async function POST(req: NextRequest) {
         createdOn: new Date().toISOString(),
       })
       .returning();
+
+    // Emit real-time PostgreSQL NOTIFY trigger
+    await db.execute(sql`NOTIFY appointment_update, 'appointment_changed'`);
 
     return NextResponse.json(result[0]);
   } catch (e) {

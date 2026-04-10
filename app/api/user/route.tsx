@@ -1,7 +1,7 @@
 import { db } from "@/config/db";
 import { usersTable } from "@/config/schema";
 import { currentUser } from "@clerk/nextjs/server";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
@@ -25,6 +25,10 @@ export async function POST(req: NextRequest) {
         })
         //@ts-ignore
         .returning({ usersTable });
+
+      // Notify external services of the new user addition
+      await db.execute(sql`NOTIFY user_update, 'new_user'`);
+
       return NextResponse.json(result[0]?.usersTable);
     }
     return NextResponse.json(users[0]);
