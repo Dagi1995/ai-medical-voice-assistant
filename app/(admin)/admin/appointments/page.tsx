@@ -9,6 +9,13 @@ import { Button } from "@/components/ui/button";
 export default function AppointmentsPage() {
     const [appointments, setAppointments] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [searchQuery, setSearchQuery] = useState("");
+
+    const filteredAppointments = appointments.filter(apt => 
+        apt.patient.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        apt.doctor.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        apt.type.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
     const fetchAppointments = async () => {
         try {
@@ -80,6 +87,8 @@ export default function AppointmentsPage() {
                         <input
                             type="text"
                             placeholder="Search appointments..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
                             className="w-full md:w-64 pl-9 pr-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm placeholder:text-slate-400 dark:text-white transition-all"
                         />
                     </div>
@@ -118,7 +127,7 @@ export default function AppointmentsPage() {
                             </tr>
                         </thead>
                         <tbody>
-                            {appointments.map((apt) => (
+                            {filteredAppointments.map((apt) => (
                                 <tr key={apt.id} className="border-b border-slate-100 dark:border-white/5 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
                                     <td className="px-6 py-4">
                                         <div className="text-sm font-semibold text-slate-900 dark:text-white">{apt.patient}</div>
