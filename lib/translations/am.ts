@@ -1,0 +1,18 @@
+export const am = {
+  bookingTitle: "አዲስ ቀጠሮ ይፍጠሩ",
+  bookingSubtitle: "በህክምና ወኪል ስርዓት ውስጥ በእጅ ቀጠሮ ያስይዙ።",
+  patientName: "የታካሚ ስም",
+  patientNamePlaceholder: "ለምሳሌ ዮሃንስ ደበበ",
+  assignedDoctor: "የተመደበው ዶክተር",
+  doctorPlaceholder: "ለምሳሌ ዶ/ር ሳራ ስሚዝ",
+  preferredLanguage: "ተመራጭ ቋንቋ",
+  clinicalNotes: "የህክምና ማስታወሻዎች",
+  notesPlaceholder: "ምልክቶችን፣ የታሪክ ማጠቃለያዎችን ወይም ልዩ መመሪያዎችን ያክሉ...",
+  submitButton: "ቀጠሮ ፍጠር",
+  cancelButton: "ሰርዝ",
+  backToHub: "ወደ ማእከል ተመለስ",
+  successTitle: "ቀጠሮ ተረጋግጧል!",
+  successSubtitle: "ቀጠሮው በሁሉም ዳሽቦርዶች ላይ ተመሳስሏል።",
+  redirecting: "ወደ ማእከል እየተመለሰ ነው...",
+  appointmentType: "የቀጠሮ አይነት",
+};
