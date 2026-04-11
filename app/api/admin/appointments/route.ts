@@ -5,7 +5,15 @@ import { desc, sql } from 'drizzle-orm';
 
 export async function GET() {
   try {
+    // Self-healing: Ensure status column exists
+    try {
+      await db.execute(sql`ALTER TABLE "sessionsChatTable" ADD COLUMN IF NOT EXISTS "status" VARCHAR DEFAULT 'Pending'`);
+    } catch (e) {
+      // Column probably exists, ignore
+    }
+
     const appointments = await db.select().from(sessionsChatTable).orderBy(desc(sessionsChatTable.id));
+    console.log('Fetched Appointments:', appointments.slice(0, 2)); // Log first 2 for debugging
     return NextResponse.json(appointments);
   } catch (error) {
     console.error('Error fetching appointments:', error);

@@ -50,7 +50,7 @@ class DatabaseListener {
           io.emit('user:update', users);
           console.log(`Socket Emitted: 'user:update' with ${users.length} users`);
         } else if (msg.channel === 'appointment_update') {
-          const appointments = await db.select().from(sessionsChatTable);
+          const appointments = await db.select().from(sessionsChatTable).orderBy(sql`${sessionsChatTable.id} DESC`);
           io.emit('appointment:update', appointments);
           console.log(`Socket Emitted: 'appointment:update' with ${appointments.length} records`);
         }

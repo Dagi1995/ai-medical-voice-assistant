@@ -18,4 +18,5 @@ export const sessionsChatTable = pgTable("sessionsChatTable", {
   report: json(),
   createdBy: varchar().references(() => usersTable.email),
   createdOn: varchar(),
+  status: varchar().default("Pending"),
 });

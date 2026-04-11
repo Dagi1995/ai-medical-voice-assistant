@@ -6,12 +6,44 @@ import { motion } from "motion/react";
 import { Search, CalendarDays, CheckCircle2, XCircle, Clock } from "lucide-react";
 import socket from "@/lib/socket";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 export default function AppointmentsPage() {
     const router = useRouter();
     const [appointments, setAppointments] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [approvingId, setApprovingId] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState("");
+
+    const approveAppointment = async (id: string) => {
+        try {
+            // Optimistic UI Update: change status locally before request completes
+            setAppointments(prev => prev.map(apt => 
+                apt.id === id ? { ...apt, status: "Approved" } : apt
+            ));
+
+            const response = await fetch(`/api/admin/appointments/${id}/approve`, {
+                method: "PATCH",
+            });
+
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error(`Failed to approve: ${response.status}`);
+            }
+
+            const contentType = response.headers.get("content-type");
+            if (!contentType || !contentType.includes("application/json")) {
+                throw new Error("Session expired. Please sign in again.");
+            }
+            
+            // Note: UI updates automatically via socket 'appointment:update' event
+        } catch (error: any) {
+            console.error("Error approving appointment:", error);
+            toast.error(error.message || "Failed to approve appointment");
+        } finally {
+            setApprovingId(null);
+        }
+    };
 
     const filteredAppointments = appointments.filter(apt => 
         apt.patient.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -44,7 +76,7 @@ export default function AppointmentsPage() {
                 doctor: (typeof a.selectedDoctor === 'object' && a.selectedDoctor?.name) ? a.selectedDoctor.name : "System AI",
                 date: a.createdOn ? new Date(a.createdOn).toLocaleDateString() : "Just now",
                 time: a.createdOn ? new Date(a.createdOn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Live",
-                status: "Pending",
+                status: a.status || "Pending",
                 type: typeof a.notes === 'string' && a.notes.length > 0 ? (a.notes.substring(0, 20) + '...') : "Consultation"
             }));
             setAppointments(formattedAppointments);
@@ -67,7 +99,7 @@ export default function AppointmentsPage() {
                 doctor: (typeof a.selectedDoctor === 'object' && a.selectedDoctor?.name) ? a.selectedDoctor.name : "System AI",
                 date: a.createdOn ? new Date(a.createdOn).toLocaleDateString() : "Just now",
                 time: a.createdOn ? new Date(a.createdOn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Live",
-                status: "Pending",
+                status: a.status || "Pending",
                 type: typeof a.notes === 'string' && a.notes.length > 0 ? (a.notes.substring(0, 20) + '...') : "Consultation"
             }));
             
@@ -161,18 +193,26 @@ export default function AppointmentsPage() {
                                         {apt.type}
                                     </td>
                                     <td className="px-6 py-4">
-                                        {apt.status === "Upcoming" && <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400">Upcoming</span>}
+                                        {apt.status === "Approved" && <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400">Approved</span>}
                                         {apt.status === "Pending" && <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400">Pending</span>}
                                         {apt.status === "Completed" && <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400">Completed</span>}
                                         {apt.status === "Cancelled" && <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-400">Cancelled</span>}
                                     </td>
                                     <td className="px-6 py-4 text-right space-x-2">
                                         {apt.status === "Pending" && (
-                                            <Button variant="outline" size="sm" className="h-8 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-500/20">
-                                                <CheckCircle2 className="w-4 h-4 mr-1.5" /> Approve
+                                            <Button 
+                                                variant="outline" size="sm" 
+                                                disabled={approvingId === apt.id}
+                                                onClick={() => approveAppointment(apt.id)}
+                                                className="h-8 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-500/20"
+                                            >
+                                                {approvingId === apt.id ? (
+                                                    <div className="w-4 h-4 border-2 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin mr-1.5" />
+                                                ) : <CheckCircle2 className="w-4 h-4 mr-1.5" />}
+                                                Approve
                                             </Button>
                                         )}
-                                        {(apt.status === "Upcoming" || apt.status === "Pending") && (
+                                        {(apt.status === "Approved" || apt.status === "Pending") && (
                                             <Button variant="outline" size="sm" className="h-8 rounded-lg bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10">
                                                 <XCircle className="w-4 h-4 mr-1.5" /> Cancel
                                             </Button>

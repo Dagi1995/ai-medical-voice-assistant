@@ -8,6 +8,13 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const range = searchParams.get('range') || 'weekly';
 
+    // Self-healing: Ensure status column exists
+    try {
+      await db.execute(sql`ALTER TABLE "sessionsChatTable" ADD COLUMN IF NOT EXISTS "status" VARCHAR DEFAULT 'Pending'`);
+    } catch (e) {
+      // Column probably exists, ignore
+    }
+
     // Fetch real metrics
     const [userCount] = await db.select({ count: sql`count(*)` }).from(usersTable);
     const [appointmentCount] = await db.select({ count: sql`count(*)` }).from(sessionsChatTable);
@@ -73,8 +80,12 @@ export async function GET(request: Request) {
         { id: 103, type: 'info', title: 'Socket Cloud Connected', message: 'Backend synchronization is active and listening for DB state changes.', time: 'Ready' },
       ]
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Dashboard API Error:', error);
-    return NextResponse.json({ error: 'Failed to fetch dashboard data' }, { status: 500 });
+    return NextResponse.json({ 
+      error: 'Failed to fetch dashboard data',
+      message: error.message,
+      stack: error.stack 
+    }, { status: 500 });
   }
 }
