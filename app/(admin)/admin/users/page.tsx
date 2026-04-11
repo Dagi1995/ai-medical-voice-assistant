@@ -6,33 +6,48 @@ import { Search, Shield, ShieldBan, MoreVertical, ActivitySquare } from "lucide-
 import socket from "@/lib/socket";
 import { Button } from "@/components/ui/button";
 
-const mockUsers = [
-    { id: "1", name: "Alice Freeman", email: "alice@example.com", role: "Patient", status: "Active", lastActive: "10 mins ago" },
-    { id: "2", name: "Dr. Robert Chen", email: "robert@medical.ai", role: "Doctor", status: "Active", lastActive: "1 hour ago" },
-    { id: "3", name: "Sarah Williams", email: "sarah.w@example.com", role: "Patient", status: "Blocked", lastActive: "2 days ago" },
-    { id: "4", name: "Michael Chang", email: "m.chang@example.com", role: "Patient", status: "Active", lastActive: "Just now" },
-    { id: "5", name: "Emma Thompson", email: "emma.t@admin.ai", role: "Admin", status: "Active", lastActive: "5 mins ago" },
-];
-
 export default function UserManagementPage() {
-    const [users, setUsers] = useState<any[]>(mockUsers);
+    const [users, setUsers] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    const fetchUsers = async () => {
+        try {
+            setLoading(true);
+            const response = await fetch("/api/admin/users");
+            const data = await response.json();
+            
+            const formattedUsers = data.map((u: any) => ({
+                id: String(u.id),
+                name: u.name,
+                email: u.email,
+                role: u.role || "Patient",
+                status: "Active",
+                lastActive: "Just now"
+            }));
+            setUsers(formattedUsers);
+        } catch (error) {
+            console.error("Error fetching users:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
+        fetchUsers();
+
         const handleUserUpdate = (updatedUsers: any[]) => {
             console.log("[Socket] user:update received", updatedUsers);
             
-            // Map the raw database schema onto the UI expected structure
-            // Real fields: id, name, email, credits
             const formattedUsers = updatedUsers.map(u => ({
                 id: String(u.id),
                 name: u.name,
                 email: u.email,
-                role: u.role || "Patient", // Defaulting role since it is not in the schema yet
+                role: u.role || "Patient",
                 status: "Active",
                 lastActive: "Just now"
             }));
             
-            setUsers(formattedUsers.reverse()); // Show newest first
+            setUsers(formattedUsers);
         };
 
         socket.on("user:update", handleUserUpdate);
@@ -41,6 +56,14 @@ export default function UserManagementPage() {
             socket.off("user:update", handleUserUpdate);
         };
     }, []);
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            </div>
+        );
+    }
 
     return (
         <div className="max-w-7xl mx-auto space-y-8">

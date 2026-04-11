@@ -29,6 +29,7 @@ export default function AdminDashboard() {
   const [timeRange, setTimeRange] = useState<'daily' | 'weekly' | 'monthly'>('weekly');
   const [modalData, setModalData] = useState<{type: 'usage' | 'symptom', payload: any} | null>(null);
   const [dismissedAlerts, setDismissedAlerts] = useState<Set<number>>(new Set());
+  const [isConnected, setIsConnected] = useState(socket.connected);
 
   const fetchDashboardData = useCallback(async (isPolling = false, range = 'weekly') => {
     try {
@@ -58,10 +59,17 @@ export default function AdminDashboard() {
       fetchDashboardData(true, timeRange);
     };
 
+    const handleConnect = () => setIsConnected(true);
+    const handleDisconnect = () => setIsConnected(false);
+
+    socket.on('connect', handleConnect);
+    socket.on('disconnect', handleDisconnect);
     socket.on('user:update', handleRemoteUpdate);
     socket.on('appointment:update', handleRemoteUpdate);
 
     return () => {
+      socket.off('connect', handleConnect);
+      socket.off('disconnect', handleDisconnect);
       socket.off('user:update', handleRemoteUpdate);
       socket.off('appointment:update', handleRemoteUpdate);
     };
@@ -69,8 +77,12 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto flex items-center justify-center min-h-[50vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-900 dark:border-white"></div>
+      <div className="max-w-7xl mx-auto flex flex-col items-center justify-center min-h-[50vh] space-y-4">
+        <div className="relative flex justify-center items-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-slate-200 dark:border-white/10 border-t-blue-600 dark:border-t-blue-500"></div>
+            <div className="absolute animate-pulse w-4 h-4 bg-blue-600/50 dark:bg-blue-500/50 rounded-full blur-sm"></div>
+        </div>
+        <p className="text-slate-500 dark:text-slate-400 font-medium animate-pulse">Syncing real-time workspace...</p>
       </div>
     );
   }
@@ -104,9 +116,9 @@ export default function AdminDashboard() {
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-1">
             <p className="text-slate-500 dark:text-slate-400 text-sm md:text-base">Real-time performance and usage metrics of the AI Agent.</p>
             {lastUpdated && (
-              <span className="inline-flex max-w-max items-center text-xs font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-500/10 px-2.5 py-1 rounded-full">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 animate-pulse"></span>
-                Live updating {lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+              <span className={`inline-flex max-w-max items-center text-xs font-medium px-2.5 py-1 rounded-full transition-colors ${isConnected ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-500/10' : 'text-slate-500 bg-slate-100 dark:bg-slate-800'}`}>
+                <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${isConnected ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`}></span>
+                {isConnected ? `Live updating • ${lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}` : `Offline • Last sync ${lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}
               </span>
             )}
           </div>

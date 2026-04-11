@@ -1,17 +1,72 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion } from "motion/react";
 import { Search, CalendarDays, CheckCircle2, XCircle, Clock } from "lucide-react";
+import socket from "@/lib/socket";
 import { Button } from "@/components/ui/button";
 
-const mockAppointments = [
-    { id: "A101", patient: "Alice Freeman", doctor: "Dr. Robert Chen", date: "April 8, 2026", time: "10:00 AM", status: "Upcoming", type: "General Checkup" },
-    { id: "A102", patient: "Michael Chang", doctor: "Dr. Sarah Smith", date: "April 8, 2026", time: "01:30 PM", status: "Pending", type: "Follow-up" },
-    { id: "A103", patient: "Emma Thompson", doctor: "Dr. Richard Davis", date: "April 7, 2026", time: "09:15 AM", status: "Completed", type: "Consultation" },
-    { id: "A104", patient: "David Brown", doctor: "Dr. Robert Chen", date: "April 9, 2026", time: "11:00 AM", status: "Cancelled", type: "Vaccination" },
-];
-
 export default function AppointmentsPage() {
+    const [appointments, setAppointments] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    const fetchAppointments = async () => {
+        try {
+            setLoading(true);
+            const response = await fetch("/api/admin/appointments");
+            const data = await response.json();
+            
+            const formattedAppointments = data.map((a: any) => ({
+                id: String(a.id || a.sessionId),
+                patient: a.createdBy || "Unregistered Patient",
+                doctor: (typeof a.selectedDoctor === 'object' && a.selectedDoctor?.name) ? a.selectedDoctor.name : "System AI",
+                date: a.createdOn ? new Date(a.createdOn).toLocaleDateString() : "Just now",
+                time: a.createdOn ? new Date(a.createdOn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Live",
+                status: "Pending",
+                type: typeof a.notes === 'string' && a.notes.length > 0 ? (a.notes.substring(0, 20) + '...') : "Consultation"
+            }));
+            setAppointments(formattedAppointments);
+        } catch (error) {
+            console.error("Error fetching appointments:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchAppointments();
+
+        const handleAppointmentUpdate = (updatedAppointments: any[]) => {
+            console.log("[Socket] appointment:update received", updatedAppointments);
+            
+            const formattedAppointments = updatedAppointments.map(a => ({
+                id: String(a.id || a.sessionId),
+                patient: a.createdBy || "Unregistered Patient",
+                doctor: (typeof a.selectedDoctor === 'object' && a.selectedDoctor?.name) ? a.selectedDoctor.name : "System AI",
+                date: a.createdOn ? new Date(a.createdOn).toLocaleDateString() : "Just now",
+                time: a.createdOn ? new Date(a.createdOn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Live",
+                status: "Pending",
+                type: typeof a.notes === 'string' && a.notes.length > 0 ? (a.notes.substring(0, 20) + '...') : "Consultation"
+            }));
+            
+            setAppointments(formattedAppointments);
+        };
+
+        socket.on("appointment:update", handleAppointmentUpdate);
+
+        return () => {
+            socket.off("appointment:update", handleAppointmentUpdate);
+        };
+    }, []);
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            </div>
+        );
+    }
+
     return (
         <div className="max-w-7xl mx-auto space-y-8">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -41,11 +96,13 @@ export default function AppointmentsPage() {
                 {['Total Bookings', 'Pending Approval', 'Completed Today', 'Cancellations'].map((stat, i) => (
                     <div key={stat} className="p-5 rounded-3xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-sm flex items-center justify-between">
                         <span className="text-slate-500 dark:text-slate-400 text-sm font-medium">{stat}</span>
-                        <span className="text-2xl font-bold text-slate-900 dark:text-white">{[124, 12, 45, 3][i]}</span>
+                        <span className="text-2xl font-bold text-slate-900 dark:text-white">
+                            {i === 0 ? appointments.length : [appointments.length, 12, 45, 3][i]}
+                        </span>
                     </div>
                 ))}
             </motion.div>
-            [4/8/2026 5:35 AM] Boni: <motion.div
+            <motion.div
                 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
                 className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-3xl overflow-hidden shadow-sm"
             >
@@ -61,7 +118,7 @@ export default function AppointmentsPage() {
                             </tr>
                         </thead>
                         <tbody>
-                            {mockAppointments.map((apt) => (
+                            {appointments.map((apt) => (
                                 <tr key={apt.id} className="border-b border-slate-100 dark:border-white/5 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
                                     <td className="px-6 py-4">
                                         <div className="text-sm font-semibold text-slate-900 dark:text-white">{apt.patient}</div>
@@ -90,7 +147,7 @@ export default function AppointmentsPage() {
                                         )}
                                         {(apt.status === "Upcoming" || apt.status === "Pending") && (
                                             <Button variant="outline" size="sm" className="h-8 rounded-lg bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10">
-                                                [4/8/2026 5:35 AM] Boni: <XCircle className="w-4 h-4 mr-1.5" /> Cancel
+                                                <XCircle className="w-4 h-4 mr-1.5" /> Cancel
                                             </Button>
                                         )}
                                         <Button variant="ghost" size="sm" className="h-8 text-blue-600 dark:text-blue-400">Reschedule</Button>
