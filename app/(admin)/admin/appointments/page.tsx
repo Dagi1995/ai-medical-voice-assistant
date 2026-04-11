@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
 import { Search, CalendarDays, CheckCircle2, XCircle, Clock } from "lucide-react";
 import socket from "@/lib/socket";
 import { Button } from "@/components/ui/button";
 
 export default function AppointmentsPage() {
+    const router = useRouter();
     const [appointments, setAppointments] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
@@ -92,7 +94,10 @@ export default function AppointmentsPage() {
                             className="w-full md:w-64 pl-9 pr-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm placeholder:text-slate-400 dark:text-white transition-all"
                         />
                     </div>
-                    <Button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white border-0 shadow-lg px-6 rounded-xl">
+                    <Button 
+                        onClick={() => router.push("/admin/appointments/new")}
+                        className="bg-gradient-to-r from-blue-600 to-purple-600 text-white border-0 shadow-lg px-6 rounded-xl"
+                    >
                         <CalendarDays className="w-4 h-4 mr-2" /> New Booking
                     </Button>
                 </div>
