@@ -12,10 +12,17 @@ import { useTranslation } from "@/lib/LanguageContext";
 import { LanguageSwitcher } from "@/components/language-switcher";
 
 export default function NewBookingPage() {
-    const { t } = useTranslation();
+    const { t, language } = useTranslation();
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
+    
+    // Validation state
+    const [errors, setErrors] = useState({
+        patientName: "",
+        notes: ""
+    });
+
     const [formData, setFormData] = useState({
         patientName: "",
         doctorName: "",
@@ -24,8 +31,37 @@ export default function NewBookingPage() {
         language: "English"
     });
 
+    const amharicRegex = /^[\u1200-\u137F\s]*$/;
+
+    const validateAmharic = (value: string, field: string) => {
+        if (language === "am" && value.length > 0 && !amharicRegex.test(value)) {
+            setErrors(prev => ({ ...prev, [field]: "እባክዎ በአማርኛ ብቻ ያስገቡ" }));
+            return false;
+        }
+        setErrors(prev => ({ ...prev, [field]: "" }));
+        return true;
+    };
+
+    const handleInputChange = (field: string, value: string) => {
+        setFormData({ ...formData, [field]: value });
+        if (language === "am") {
+            validateAmharic(value, field);
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Final validation check
+        if (language === "am") {
+            const isNameValid = validateAmharic(formData.patientName, "patientName");
+            const isNotesValid = validateAmharic(formData.notes, "notes");
+            if (!isNameValid || !isNotesValid) {
+                toast.error("እባክዎ መረጃዎችን በአማርኛ በትክክል ያስገቡ");
+                return;
+            }
+        }
+
         setLoading(true);
 
         try {
@@ -35,17 +71,26 @@ export default function NewBookingPage() {
                 body: JSON.stringify(formData),
             });
 
-            if (!response.ok) throw new Error("Failed to create booking");
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error(`Failed to create booking: ${response.status}`);
+            }
 
+            const contentType = response.headers.get("content-type");
+            if (!contentType || !contentType.includes("application/json")) {
+                throw new Error("Invalid response format (not JSON). You may need to sign in again.");
+            }
+
+            const result = await response.json();
             setSuccess(true);
             toast.success(t("successTitle"));
             
             setTimeout(() => {
                 router.push("/admin/appointments");
             }, 1000);
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
-            toast.error("Error creating appointment");
+            toast.error(error.message || "Error creating appointment");
         } finally {
             setLoading(false);
         }
@@ -91,6 +136,20 @@ export default function NewBookingPage() {
                 <p className="text-slate-500 dark:text-slate-400">{t("bookingSubtitle")}</p>
             </div>
 
+            {language === "am" && (
+                <motion.div 
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="p-4 rounded-2xl bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 flex items-start gap-3"
+                >
+                    <div className="w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center text-[10px] font-bold mt-0.5">!</div>
+                    <div>
+                        <p className="text-sm font-semibold text-blue-900 dark:text-blue-300">Amharic Keyboard Required</p>
+                        <p className="text-xs text-blue-700 dark:text-blue-400 mt-0.5 italic">እባክዎ የኮምፒውተርዎን የቁልፍ ሰሌዳ (Keyboard) ወደ አማርኛ/ግዕዝ በመቀየር መረጃዎችን ያስገቡ።</p>
+                    </div>
+                </motion.div>
+            )}
+
             <motion.div 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -105,10 +164,17 @@ export default function NewBookingPage() {
                             <input 
                                 required
                                 value={formData.patientName}
-                                onChange={(e) => setFormData({...formData, patientName: e.target.value})}
+                                onChange={(e) => handleInputChange("patientName", e.target.value)}
                                 placeholder={t("patientNamePlaceholder")}
-                                className="w-full flex h-11 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className={`w-full flex h-11 rounded-xl border bg-slate-50 dark:bg-white/5 px-3 py-2 text-sm focus:outline-none focus:ring-2 transition-all ${
+                                    errors.patientName 
+                                    ? "border-red-500 focus:ring-red-500" 
+                                    : "border-slate-200 dark:border-white/10 focus:ring-blue-500"
+                                }`}
                             />
+                            {errors.patientName && (
+                                <p className="text-[10px] font-medium text-red-500 ml-1">{errors.patientName}</p>
+                            )}
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
@@ -147,10 +213,17 @@ export default function NewBookingPage() {
                         <Textarea 
                             rows={4}
                             value={formData.notes}
-                            onChange={(e: any) => setFormData({...formData, notes: e.target.value})}
+                            onChange={(e: any) => handleInputChange("notes", e.target.value)}
                             placeholder={t("notesPlaceholder")}
-                            className="rounded-2xl border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 focus-visible:ring-blue-500"
+                            className={`rounded-2xl border bg-slate-50 dark:bg-white/5 focus-visible:ring-2 transition-all ${
+                                errors.notes 
+                                ? "border-red-500 focus-visible:ring-red-500" 
+                                : "border-slate-200 dark:border-white/10 focus-visible:ring-blue-500"
+                            }`}
                         />
+                        {errors.notes && (
+                            <p className="text-[10px] font-medium text-red-500 ml-1 mt-1">{errors.notes}</p>
+                        )}
                     </div>
 
                     <div className="pt-4 flex items-center gap-4">

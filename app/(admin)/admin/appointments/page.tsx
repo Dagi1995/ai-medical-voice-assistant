@@ -23,6 +23,19 @@ export default function AppointmentsPage() {
         try {
             setLoading(true);
             const response = await fetch("/api/admin/appointments");
+            
+            if (!response.ok) {
+                const text = await response.text();
+                console.error("Fetch failed:", response.status, text.substring(0, 100));
+                throw new Error("Failed to fetch appointments");
+            }
+
+            const contentType = response.headers.get("content-type");
+            if (!contentType || !contentType.includes("application/json")) {
+                console.error("Expected JSON but got:", contentType);
+                throw new Error("Invalid response format (not JSON). You may need to sign in again.");
+            }
+
             const data = await response.json();
             
             const formattedAppointments = data.map((a: any) => ({
