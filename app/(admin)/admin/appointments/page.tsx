@@ -13,11 +13,13 @@ export default function AppointmentsPage() {
     const [appointments, setAppointments] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [approvingId, setApprovingId] = useState<string | null>(null);
+    const [cancellingId, setCancellingId] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState("");
 
     const approveAppointment = async (id: string) => {
         try {
-            // Optimistic UI Update: change status locally before request completes
+            setApprovingId(id);
+            // Optimistic UI
             setAppointments(prev => prev.map(apt => 
                 apt.id === id ? { ...apt, status: "Approved" } : apt
             ));
@@ -35,13 +37,40 @@ export default function AppointmentsPage() {
             if (!contentType || !contentType.includes("application/json")) {
                 throw new Error("Session expired. Please sign in again.");
             }
-            
-            // Note: UI updates automatically via socket 'appointment:update' event
         } catch (error: any) {
             console.error("Error approving appointment:", error);
             toast.error(error.message || "Failed to approve appointment");
         } finally {
             setApprovingId(null);
+        }
+    };
+
+    const cancelAppointment = async (id: string) => {
+        try {
+            setCancellingId(id);
+            // Optimistic UI
+            setAppointments(prev => prev.map(apt => 
+                apt.id === id ? { ...apt, status: "Cancelled" } : apt
+            ));
+
+            const response = await fetch(`/api/admin/appointments/${id}/cancel`, {
+                method: "PATCH",
+            });
+
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error(`Failed to cancel: ${response.status}`);
+            }
+
+            const contentType = response.headers.get("content-type");
+            if (!contentType || !contentType.includes("application/json")) {
+                throw new Error("Session expired. Please sign in again.");
+            }
+        } catch (error: any) {
+            console.error("Error cancelling appointment:", error);
+            toast.error(error.message || "Failed to cancel appointment");
+        } finally {
+            setCancellingId(null);
         }
     };
 
@@ -213,8 +242,16 @@ export default function AppointmentsPage() {
                                             </Button>
                                         )}
                                         {(apt.status === "Approved" || apt.status === "Pending") && (
-                                            <Button variant="outline" size="sm" className="h-8 rounded-lg bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10">
-                                                <XCircle className="w-4 h-4 mr-1.5" /> Cancel
+                                            <Button 
+                                                variant="outline" size="sm" 
+                                                disabled={cancellingId === apt.id}
+                                                onClick={() => cancelAppointment(apt.id)}
+                                                className="h-8 rounded-lg bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10"
+                                            >
+                                                {cancellingId === apt.id ? (
+                                                    <div className="w-4 h-4 border-2 border-rose-500/30 border-t-rose-500 rounded-full animate-spin mr-1.5" />
+                                                ) : <XCircle className="w-4 h-4 mr-1.5" />}
+                                                Cancel
                                             </Button>
                                         )}
                                         <Button variant="ghost" size="sm" className="h-8 text-blue-600 dark:text-blue-400">Reschedule</Button>
