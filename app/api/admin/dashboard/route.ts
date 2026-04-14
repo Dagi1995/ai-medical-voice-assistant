@@ -17,7 +17,9 @@ export async function GET(request: Request) {
 
     // Fetch real metrics
     const [userCount] = await db.select({ count: sql`count(*)` }).from(usersTable);
-    const [appointmentCount] = await db.select({ count: sql`count(*)` }).from(sessionsChatTable);
+    const [appointmentCount] = await db.select({ count: sql`count(*)` })
+      .from(sessionsChatTable)
+      .where(sql`${sessionsChatTable.status} != 'Cancelled' OR ${sessionsChatTable.status} IS NULL`);
 
     // Recent activity (Last 5 records)
     const recentSessions = await db.select().from(sessionsChatTable).orderBy(sql`${sessionsChatTable.id} DESC`).limit(5);

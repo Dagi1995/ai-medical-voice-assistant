@@ -83,7 +83,9 @@ export default function AppointmentsPage() {
     const fetchAppointments = async () => {
         try {
             setLoading(true);
-            const response = await fetch("/api/admin/appointments");
+            const response = await fetch("/api/admin/appointments", {
+                cache: 'no-store'
+            });
             
             if (!response.ok) {
                 const text = await response.text();
@@ -254,7 +256,14 @@ export default function AppointmentsPage() {
                                                 Cancel
                                             </Button>
                                         )}
-                                        <Button variant="ghost" size="sm" className="h-8 text-blue-600 dark:text-blue-400">Reschedule</Button>
+                                        <Button 
+                                            variant="ghost" 
+                                            size="sm" 
+                                            onClick={() => router.push(`/admin/appointments/${apt.id}/edit`)}
+                                            className="h-8 text-blue-600 dark:text-blue-400"
+                                        >
+                                            Reschedule
+                                        </Button>
                                     </td>
                                 </tr>
                             ))}
