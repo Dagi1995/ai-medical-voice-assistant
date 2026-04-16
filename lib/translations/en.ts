@@ -1,0 +1,18 @@
+export const en = {
+  bookingTitle: "Create New Appointment",
+  bookingSubtitle: "Schedule a manual booking into the medical agent system.",
+  patientName: "Patient Name",
+  patientNamePlaceholder: "e.g. John Doe",
+  assignedDoctor: "Assigned Doctor",
+  doctorPlaceholder: "e.g. Dr. Sarah Smith",
+  preferredLanguage: "Preferred Language",
+  clinicalNotes: "Clinical Notes",
+  notesPlaceholder: "Add symptoms, past history, or special instructions...",
+  submitButton: "Create Appointment",
+  cancelButton: "Cancel",
+  backToHub: "Back to Hub",
+  successTitle: "Booking Confirmed!",
+  successSubtitle: "The appointment has been synchronized across all dashboards.",
+  redirecting: "Redirecting to hub...",
+  appointmentType: "Appointment Type",
+};

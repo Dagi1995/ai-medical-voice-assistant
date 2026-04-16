@@ -1,0 +1,18 @@
+export const om = {
+  bookingTitle: "Beellama Haaraa Uumi",
+  bookingSubtitle: "Siriiba waldhaansa harkaatiin beellama qabsiisi.",
+  patientName: "Maqaa Dhukkubsataa",
+  patientNamePlaceholder: "fkn. John Doe",
+  assignedDoctor: "Ogeessa Fayyaa",
+  doctorPlaceholder: "fkn. Dr. Saaraa Simiz",
+  preferredLanguage: "Afan Filatamaa",
+  clinicalNotes: "Yaada Yaalaa",
+  notesPlaceholder: "Mallattoolee, seenaa kanaan duraa, ykn qajeelfama addaa itti dabali...",
+  submitButton: "Beellama Uumi",
+  cancelButton: "Haqui",
+  backToHub: "Gara Giddugalatti Deebi'i",
+  successTitle: "Beellamni Mirkanaa'eera!",
+  successSubtitle: "Beellamni kun harka hundatti walsimsiifameera.",
+  redirecting: "Gara giddugalatti deebi'aa jira...",
+  appointmentType: "Gosa Beellamaa",
+};

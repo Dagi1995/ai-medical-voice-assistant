@@ -8,6 +8,8 @@ import Provider from "./provider";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "@/components/theme-provider";
 
+import { LanguageProvider } from "@/lib/LanguageContext";
+
 // Replacing the legacy fonts with modern counterparts suited for an AI tool.
 // Utilizing variable names expected by internal stylesheets but overriding default typography.
 const outfit = Outfit({
@@ -42,10 +44,12 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <Provider>
-              {children}
-              <Toaster />
-            </Provider>
+            <LanguageProvider>
+              <Provider>
+                {children}
+                <Toaster />
+              </Provider>
+            </LanguageProvider>
           </ThemeProvider>
         </body>
       </html>
