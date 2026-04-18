@@ -1,11 +1,12 @@
-import { integer, json, pgTable, text, varchar } from "drizzle-orm/pg-core";
-import { report } from "process";
+import { integer, json, pgTable, text, varchar, timestamp, uuid } from "drizzle-orm/pg-core";
 
 export const usersTable = pgTable("users", {
-  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  id: uuid("id").primaryKey().defaultRandom(),
   name: varchar({ length: 255 }).notNull(),
   email: varchar({ length: 255 }).notNull().unique(),
+  password: varchar().notNull(),
   credits: integer(),
+  createdAt: timestamp().defaultNow().notNull(),
 });
 
 export const sessionsChatTable = pgTable("sessionsChatTable", {

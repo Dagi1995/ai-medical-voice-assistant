@@ -9,7 +9,7 @@ import {
   Pill, Activity, Bell, Settings, LogOut, Menu, X 
 } from "lucide-react";
 import { ModeToggle } from "@/app/(routes)/(dashboard)/_components/DarkMood";
-import { UserButton, useUser } from "@clerk/nextjs";
+import { signOut, useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 
 const sidebarLinks = [
@@ -24,7 +24,7 @@ const sidebarLinks = [
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { user } = useUser();
+  const { data: session } = useSession();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
@@ -96,7 +96,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </button>
             <div className="hidden md:block">
               <h1 className="text-sm font-medium text-slate-500 dark:text-slate-400">Welcome back,</h1>
-              <h2 className="text-xl font-bold font-sans tracking-tight">{user?.firstName || "Admin"}</h2>
+              <h2 className="text-xl font-bold font-sans tracking-tight">{session?.user?.name || "Admin"}</h2>
             </div>
           </div>
 
@@ -106,8 +106,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <Bell className="w-5 h-5" />
               <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white dark:ring-[#0a0a0a]" />
             </div>
-            <div className="h-10 w-10 shrink-0 rounded-full ring-2 ring-slate-200 dark:ring-white/10 overflow-hidden">
-               <UserButton appearance={{ elements: { userButtonAvatarBox: "w-full h-full" } }} />
+            <div 
+              onClick={() => signOut()}
+              className="h-10 w-10 shrink-0 rounded-full ring-2 ring-slate-200 dark:ring-white/10 overflow-hidden bg-slate-200 flex items-center justify-center cursor-pointer hover:bg-slate-300"
+              title="Log out"
+            >
+               <span className="font-bold text-slate-500">{session?.user?.name?.charAt(0)?.toUpperCase() || "A"}</span>
             </div>
           </div>
         </header>

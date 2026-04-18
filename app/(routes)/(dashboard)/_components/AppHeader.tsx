@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { UserButton } from "@clerk/nextjs";
+import { signOut } from "next-auth/react";
 import { Menu, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -320,7 +320,13 @@ function AppHeader() {
         <div className="flex items-center gap-3">
           <ModeToggle />
 
-          <UserButton afterSignOutUrl="/" />
+          <Button 
+            onClick={() => signOut()} 
+            variant="outline" 
+            className={`rounded-xl ${isDark ? "bg-gray-800 text-gray-200" : ""}`}
+          >
+            Log Out
+          </Button>
 
           {/* Hamburger Menu Button (Mobile Only) */}
           <Button

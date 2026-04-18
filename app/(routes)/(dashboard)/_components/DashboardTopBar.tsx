@@ -6,14 +6,14 @@ import moment from "moment";
 import { Menu, X } from "lucide-react";
 import Sidebar from "./Sidebar";
 import { usePathname } from "next/navigation";
-import { useUser } from "@clerk/nextjs";
+import { useSession } from "next-auth/react";
 import { createPortal } from "react-dom";
 
 const DashboardTopBar = () => {
   const [mounted, setMounted] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
-  const { user } = useUser();
+  const { data: session } = useSession();
 
   useEffect(() => {
     setMounted(true);
@@ -36,7 +36,7 @@ const DashboardTopBar = () => {
           </button>
           <div className="flex flex-col">
             <h2 className="font-bold text-lg text-black dark:text-white">
-              Hey, {user?.firstName || "Guest"}!
+              Hey, {session?.user?.name?.split(' ')[0] || "Guest"}!
             </h2>
             <p className="text-xs text-gray-500 dark:text-gray-400">
               {mounted ? moment().format('MMMM DD, YYYY') : <span className="opacity-0">Loading...</span>}

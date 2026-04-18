@@ -3,7 +3,8 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { UserButton, useClerk } from "@clerk/nextjs";
+import { signOut } from "next-auth/react";
+import { LogOut } from "lucide-react";
 import { History, LayoutDashboard, Stethoscope, CreditCard, Settings } from "lucide-react";
 
 export const menuOptions = [
@@ -76,22 +77,12 @@ const Sidebar = () => {
 
       {/* Bottom Section */}
       <div className="flex flex-col gap-2 relative">
-        <div className="relative group flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer hover:bg-[#d6d6d6] dark:hover:bg-gray-800 transition-colors">
-          {/* Invisible UserButton overlay that triggers the dropdown */}
-          <div className="absolute inset-0 z-20 opacity-0 overflow-hidden cursor-pointer">
-             <UserButton 
-               afterSignOutUrl="/" 
-               appearance={{ 
-                 elements: { 
-                   userButtonTrigger: { width: '100%', height: '100%', cursor: 'pointer' },
-                   rootBox: { width: '100%', height: '100%' }
-                 } 
-               }} 
-             />
-          </div>
-          
-          <Settings className="w-5 h-5 text-gray-600 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white transition-colors" />
-          <span className="font-medium text-[15px] text-gray-600 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white transition-colors">Setting</span>
+        <div 
+          onClick={() => signOut()}
+          className="relative group flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+        >
+          <LogOut className="w-5 h-5 text-gray-600 group-hover:text-red-500 dark:text-gray-400 dark:group-hover:text-red-400 transition-colors" />
+          <span className="font-medium text-[15px] text-gray-600 group-hover:text-red-500 dark:text-gray-400 dark:group-hover:text-red-400 transition-colors">Log Out</span>
         </div>
       </div>
     </div>

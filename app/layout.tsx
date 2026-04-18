@@ -3,7 +3,6 @@ import { Outfit, JetBrains_Mono } from "next/font/google";
 //@ts-ignore
 import "./globals.css";
 
-import { ClerkProvider } from "@clerk/nextjs";
 import Provider from "./provider";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -31,24 +30,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ClerkProvider>
-      <html lang="en" suppressHydrationWarning>
-        <body
-          className={`${outfit.variable} ${jetbrainsMono.variable} ${outfit.className} antialiased`}
+    <html lang="en" suppressHydrationWarning>
+      <body
+        className={`${outfit.variable} ${jetbrainsMono.variable} ${outfit.className} antialiased`}
+      >
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem
+          disableTransitionOnChange
         >
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="light"
-            enableSystem
-            disableTransitionOnChange
-          >
-            <Provider>
-              {children}
-              <Toaster />
-            </Provider>
-          </ThemeProvider>
-        </body>
-      </html>
-    </ClerkProvider>
+          <Provider>
+            {children}
+            <Toaster />
+          </Provider>
+        </ThemeProvider>
+      </body>
+    </html>
   );
 }
