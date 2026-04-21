@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { openai } from "@/config/OpenAiModel";
 import { report } from "process";
 import { Session } from "inspector/promises";
-import { db } from "@/config/db";
+import { db } from "@/lib/db";
 import { sessionsChatTable } from "@/config/schema";
 import { eq } from "drizzle-orm";
 

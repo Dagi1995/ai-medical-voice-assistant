@@ -1,4 +1,4 @@
-import { db } from "@/config/db";
+import { db } from "@/lib/db";
 import { sessionsChatTable } from "@/config/schema";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";

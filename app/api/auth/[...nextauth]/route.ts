@@ -2,7 +2,7 @@ export const runtime = "nodejs";
 
 import NextAuth, { AuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { db } from "@/config/db";
+import { db } from "@/lib/db";
 import { usersTable } from "@/config/schema";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";

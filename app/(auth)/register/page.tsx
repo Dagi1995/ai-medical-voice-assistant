@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { HeartPulse } from "lucide-react";
+import { HeartPulse, Check, X } from "lucide-react";
 import { toast } from "sonner";
 
 export default function RegisterPage() {
@@ -13,6 +13,11 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const hasMinLimit = password.length >= 8;
+  const hasLetter = /[a-zA-Z]/.test(password);
+  const hasNumber = /[0-9]/.test(password);
+  const isPasswordValid = hasMinLimit && hasLetter && hasNumber;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,8 +86,24 @@ export default function RegisterPage() {
               placeholder="Create a password"
               required
             />
+            {password.length > 0 && (
+              <div className="mt-3 space-y-1 text-sm bg-slate-50 dark:bg-white/5 p-3 rounded-lg">
+                <div className={`flex items-center gap-2 ${hasMinLimit ? 'text-green-600 dark:text-green-400' : 'text-slate-500 dark:text-slate-400'}`}>
+                  {hasMinLimit ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
+                  <span>At least 8 characters</span>
+                </div>
+                <div className={`flex items-center gap-2 ${hasLetter ? 'text-green-600 dark:text-green-400' : 'text-slate-500 dark:text-slate-400'}`}>
+                  {hasLetter ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
+                  <span>Contains a letter</span>
+                </div>
+                <div className={`flex items-center gap-2 ${hasNumber ? 'text-green-600 dark:text-green-400' : 'text-slate-500 dark:text-slate-400'}`}>
+                  {hasNumber ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
+                  <span>Contains a number</span>
+                </div>
+              </div>
+            )}
           </div>
-          <Button type="submit" disabled={loading} className="w-full h-12 text-lg bg-blue-600 hover:bg-blue-700 text-white rounded-xl">
+          <Button type="submit" disabled={loading || !name || !email || !isPasswordValid} className="w-full h-12 text-lg bg-blue-600 hover:bg-blue-700 text-white rounded-xl disabled:opacity-50">
             {loading ? "Creating..." : "Sign Up"}
           </Button>
         </form>
