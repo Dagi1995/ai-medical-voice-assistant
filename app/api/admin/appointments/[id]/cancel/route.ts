@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/config/db';
-import { sessionsChatTable } from '@/config/schema';
+import { sessionsChatTable, notificationsTable } from '@/config/schema';
 import { eq, sql } from 'drizzle-orm';
 
 export async function PATCH(
@@ -28,10 +28,23 @@ export async function PATCH(
       return NextResponse.json({ error: 'Appointment not found' }, { status: 404 });
     }
 
+    const updatedAppointment = updated[0];
+
+    // Create notification
+    if (updatedAppointment.createdBy) {
+      await db.insert(notificationsTable).values({
+        userId: updatedAppointment.createdBy,
+        title: 'Appointment Cancelled',
+        message: 'Your appointment has been cancelled.',
+        type: 'warning',
+      });
+      await db.execute(sql`NOTIFY notification_update`);
+    }
+
     // Trigger explicit NOTIFY for real-time update
     await db.execute(sql`NOTIFY appointment_update`);
 
-    return NextResponse.json({ message: 'Appointment cancelled successfully', data: updated[0] });
+    return NextResponse.json({ message: 'Appointment cancelled successfully', data: updatedAppointment });
   } catch (error) {
     console.error('Error cancelling appointment:', error);
     return NextResponse.json({ error: 'Failed to cancel appointment' }, { status: 500 });
