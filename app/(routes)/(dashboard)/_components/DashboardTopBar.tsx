@@ -8,6 +8,7 @@ import Sidebar from "./Sidebar";
 import { usePathname } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { createPortal } from "react-dom";
+import { NotificationBadge } from "@/components/NotificationBadge";
 
 const DashboardTopBar = () => {
   const [mounted, setMounted] = useState(false);
@@ -45,6 +46,7 @@ const DashboardTopBar = () => {
         </div>
         
         <div className="flex items-center gap-4">
+          <NotificationBadge href="/notifications" />
           <ModeToggle />
         </div>
       </div>

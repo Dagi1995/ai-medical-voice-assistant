@@ -103,7 +103,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
           <div className="flex items-center gap-2 lg:gap-4">
             <ModeToggle />
-            <NotificationBadge />
+            <NotificationBadge href="/admin/notifications" />
             <div className="h-10 w-10 shrink-0 rounded-full ring-2 ring-slate-200 dark:ring-white/10 overflow-hidden">
                <UserButton appearance={{ elements: { userButtonAvatarBox: "w-full h-full" } }} />
             </div>
