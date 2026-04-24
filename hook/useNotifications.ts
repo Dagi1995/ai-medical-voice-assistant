@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { io, Socket } from "socket.io-client";
+import { socket } from "@/lib/socket";
 
 export interface Notification {
   id: number;
@@ -16,7 +16,7 @@ export interface Notification {
 export function useNotifications(userId?: string) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [socket, setSocket] = useState<Socket | null>(null);
+
 
   const fetchNotifications = useCallback(async () => {
     try {
@@ -37,10 +37,7 @@ export function useNotifications(userId?: string) {
   }, [fetchNotifications]);
 
   useEffect(() => {
-    const socketInstance = io(); // Connects to the same host
-    setSocket(socketInstance);
-
-    socketInstance.on("notification:update", (updatedNotifications: Notification[]) => {
+    socket.on("notification:update", (updatedNotifications: Notification[]) => {
       // If we have a userId, filter the notifications for this user.
       const userNotifications = userId 
         ? updatedNotifications.filter(n => n.userId === userId)
@@ -50,7 +47,7 @@ export function useNotifications(userId?: string) {
       setUnreadCount(userNotifications.filter(n => !n.read).length);
     });
 
-    socketInstance.on("notification:new", (newNotification: Notification) => {
+    socket.on("notification:new", (newNotification: Notification) => {
       if (!userId || newNotification.userId === userId) {
         setNotifications(prev => {
           const updated = [newNotification, ...prev];
@@ -61,7 +58,8 @@ export function useNotifications(userId?: string) {
     });
 
     return () => {
-      socketInstance.disconnect();
+      socket.off("notification:update");
+      socket.off("notification:new");
     };
   }, [userId]);
 
