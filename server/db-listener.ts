@@ -2,6 +2,7 @@ import { Client } from 'pg';
 import { io } from './socket';
 import { db } from '../config/db';
 import { usersTable, sessionsChatTable } from '../config/schema';
+import { sql } from 'drizzle-orm';
 
 const connectionString = process.env.DATABASE_URL;
 
@@ -53,6 +54,11 @@ class DatabaseListener {
           const appointments = await db.select().from(sessionsChatTable).orderBy(sql`${sessionsChatTable.id} DESC`);
           io.emit('appointment:update', appointments);
           console.log(`Socket Emitted: 'appointment:update' with ${appointments.length} records`);
+        } else if (msg.channel === 'notification_update') {
+          const { notificationsTable } = await import('../config/schema');
+          const notifications = await db.select().from(notificationsTable).orderBy(sql`${notificationsTable.id} DESC`);
+          io.emit('notification:update', notifications);
+          console.log(`Socket Emitted: 'notification:update' with ${notifications.length} records`);
         }
 
         if (msg.payload) {
@@ -71,8 +77,9 @@ class DatabaseListener {
       // Start listening to the required channels
       await this.client.query('LISTEN user_update');
       await this.client.query('LISTEN appointment_update');
+      await this.client.query('LISTEN notification_update');
       
-      console.log('Listening to channels: "user_update", "appointment_update"');
+      console.log('Listening to channels: "user_update", "appointment_update", "notification_update"');
       
       // Clear any pending reconnects
       if (this.reconnectTimeout) {

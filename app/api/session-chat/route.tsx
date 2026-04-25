@@ -1,5 +1,5 @@
 import { db } from "@/config/db";
-import { sessionsChatTable } from "@/config/schema";
+import { sessionsChatTable, notificationsTable } from "@/config/schema";
 import { currentUser } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
@@ -21,6 +21,17 @@ export async function POST(req: NextRequest) {
         createdOn: new Date().toISOString(),
       })
       .returning();
+
+    // Create notification
+    if (user?.primaryEmailAddress?.emailAddress) {
+      await db.insert(notificationsTable).values({
+        userId: user.primaryEmailAddress.emailAddress,
+        title: 'Appointment Created',
+        message: 'Your appointment has been successfully created.',
+        type: 'success',
+      });
+      await db.execute(sql`NOTIFY notification_update`);
+    }
 
     // Emit real-time PostgreSQL NOTIFY trigger
     await db.execute(sql`NOTIFY appointment_update, 'appointment_changed'`);
