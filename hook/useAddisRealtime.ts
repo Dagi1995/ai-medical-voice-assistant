@@ -74,14 +74,14 @@ export function useAddisRealtime({ apiKey, onTranscript, onMessage, onGreetingSt
         bytes[i] = binary.charCodeAt(i);
       }
       
-      const pcm16 = new Int16Array(bytes.buffer);
+      const pcm16 = new Int16Array(bytes.buffer, 0, Math.floor(bytes.byteLength / 2));
       const float32 = new Float32Array(pcm16.length);
       for (let i = 0; i < pcm16.length; i++) {
-        float32[i] = pcm16[i] / 32768;
+        float32[i] = pcm16[i] / 32768.0;
       }
 
       const buffer = outputContextRef.current.createBuffer(1, float32.length, sampleRate);
-      buffer.copyToChannel(float32, 0);
+      buffer.getChannelData(0).set(float32);
       playAudioBuffer(buffer);
     } catch (err) {
       console.error("PCM Playback Error:", err);
@@ -136,8 +136,12 @@ export function useAddisRealtime({ apiKey, onTranscript, onMessage, onGreetingSt
         }
         
         socketRef.current.send(JSON.stringify({
-          data: btoa(binary),
-          mimeType: "audio/pcm;rate=16000",
+          realtimeInput: {
+            mediaChunks: [{
+              data: btoa(binary),
+              mimeType: "audio/pcm;rate=16000",
+            }]
+          }
         }));
       };
 
@@ -154,13 +158,23 @@ export function useAddisRealtime({ apiKey, onTranscript, onMessage, onGreetingSt
       socket.onmessage = async (event) => {
         const message = JSON.parse(event.data);
         
-        if (message.setupComplete || (message.type === "status" && /ready/i.test(message.message || ""))) {
+        // Handle connection ready status (Gemini style or custom Addis relay)
+        const isReady = 
+          message.setupComplete || 
+          (message.type === "status" && /ready/i.test(message.message || "")) ||
+          message.session?.id || // Some relays send session object
+          message.serverContent?.setupComplete;
+
+        if (isReady && !isStreamingRef.current) {
+          console.log("Realtime Streaming Started");
           setIsStreaming(true);
           
-          // Send system instructions if provided to prime the persona
           if (systemInstructions) {
             socket.send(JSON.stringify({
-              text: systemInstructions
+              clientContent: {
+                turns: [{ role: "user", parts: [{ text: systemInstructions }] }],
+                turnComplete: true
+              }
             }));
           }
           return;

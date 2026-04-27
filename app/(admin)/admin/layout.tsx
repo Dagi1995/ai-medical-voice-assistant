@@ -15,9 +15,8 @@ import { NotificationBadge } from "@/components/NotificationBadge";
 
 const sidebarLinks = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
+  { name: "AI Doctors", href: "/admin/ai-doctors", icon: Pill },
   { name: "User Management", href: "/admin/users", icon: Users },
-  { name: "Appointments", href: "/admin/appointments", icon: Calendar },
-  { name: "Pharmacies", href: "/admin/pharmacies", icon: Pill },
   { name: "AI Monitoring", href: "/admin/ai-monitoring", icon: Activity },
   { name: "Notifications", href: "/admin/notifications", icon: Bell },
   { name: "Settings", href: "/admin/settings", icon: Settings },

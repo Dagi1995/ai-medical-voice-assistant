@@ -4,11 +4,13 @@ import { Button } from "@/components/ui/button";
 
 export type doctorAgent = {
   id: number;
+  name: string;
   specialty: string;
   description: string;
-  image: string;
+  image?: string | null;
+  imageUrl?: string | null;
   agentPrompt: string;
-  voiceId?: string;
+  voiceId?: string | null;
 };
 
 type Props = {
@@ -21,7 +23,7 @@ function DoctorAgentCard({ doctorAgent }: Props) {
       <div className="relative mb-4">
         <div className="absolute inset-0 bg-gradient-to-tr from-blue-500 to-purple-500 rounded-full blur-md opacity-20 group-hover:opacity-40 transition-opacity"></div>
         <Image
-          src={doctorAgent.image}
+          src={doctorAgent.image || doctorAgent.imageUrl || "/doctor-placeholder.png"}
           alt={doctorAgent.specialty || "Doctor image"}
           width={80}
           height={80}

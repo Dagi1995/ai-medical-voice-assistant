@@ -60,14 +60,14 @@ const DashboardTopBar = () => {
           ></div>
           
           {/* Sidebar Drawer */}
-          <div className="relative w-72 h-full bg-white dark:bg-slate-950 shadow-2xl overflow-y-auto animate-in slide-in-from-left duration-300">
+          <div className="relative w-72 h-full bg-white dark:bg-[#0a0a0a] shadow-2xl overflow-y-auto animate-in slide-in-from-left duration-300">
             <button 
-              className="absolute top-6 right-4 p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+              className="absolute top-5 right-4 z-[60] p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
               onClick={() => setIsMobileMenuOpen(false)}
             >
               <X className="w-6 h-6" />
             </button>
-            <div className="h-full pt-4">
+            <div className="h-full">
                <Sidebar />
             </div>
           </div>

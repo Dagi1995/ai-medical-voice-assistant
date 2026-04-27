@@ -2,14 +2,14 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const key = process.env.OPEN_ROUTE_API_KEY;
+const key = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 if (!key) {
-  console.error("OPEN_ROUTE_API_KEY not found in .env");
+  console.error("NEXT_PUBLIC_GEMINI_API_KEY not found in .env");
   process.exit(2);
 }
 
 const body = {
-  model: "arcee-ai/trinity-large-preview:free",
+  model: "gemini-flash-latest",
   messages: [
     {
       role: "user",
@@ -22,7 +22,7 @@ const body = {
 
 (async () => {
   try {
-    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    const res = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${key}`,
