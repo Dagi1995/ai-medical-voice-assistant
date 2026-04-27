@@ -19,6 +19,8 @@ export default function AIDoctorsPage() {
     const [agentPrompt, setAgentPrompt] = useState("");
     const [voiceId, setVoiceId] = useState("andrew");
     const [knowledgeFile, setKnowledgeFile] = useState<File | null>(null);
+    const [photoFile, setPhotoFile] = useState<File | null>(null);
+    const [photoPreview, setPhotoPreview] = useState<string | null>(null);
     const [isCreating, setIsCreating] = useState(false);
 
     const [selectedDoctor, setSelectedDoctor] = useState<any>(null);
@@ -77,6 +79,9 @@ export default function AIDoctorsPage() {
         if (knowledgeFile) {
             formData.append("knowledgeFile", knowledgeFile);
         }
+        if (photoFile) {
+            formData.append("photoFile", photoFile);
+        }
 
         try {
             const res = await fetch("/api/admin/ai-doctors", {
@@ -131,6 +136,8 @@ export default function AIDoctorsPage() {
         setAgentPrompt("");
         setVoiceId("andrew");
         setKnowledgeFile(null);
+        setPhotoFile(null);
+        setPhotoPreview(null);
     };
 
     const filteredDoctors = doctors.filter(doc => 
@@ -186,8 +193,12 @@ export default function AIDoctorsPage() {
                             </div>
 
                             <div className="flex items-center gap-4 mb-4">
-                                <div className="w-14 h-14 rounded-2xl bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center">
-                                    <Pill className="w-7 h-7" />
+                                <div className="w-14 h-14 rounded-2xl bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center overflow-hidden">
+                                    {doctor.imageUrl ? (
+                                        <img src={doctor.imageUrl} alt={doctor.name} className="w-full h-full object-cover" />
+                                    ) : (
+                                        <Pill className="w-7 h-7" />
+                                    )}
                                 </div>
                                 <div>
                                     <h3 className="font-bold text-slate-900 dark:text-white text-lg">{doctor.name}</h3>
@@ -355,19 +366,20 @@ export default function AIDoctorsPage() {
                                     />
                                 </div>
 
+                                <div className="space-y-2">
+                                    <label className="text-sm font-semibold ml-1">Voice Selection</label>
+                                    <select 
+                                        value={voiceId} onChange={e => setVoiceId(e.target.value)}
+                                        className="w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all appearance-none"
+                                    >
+                                        <option value="andrew">Andrew (Professional Male)</option>
+                                        <option value="emma">Emma (Warm Female)</option>
+                                        <option value="brian">Brian (Deep Male)</option>
+                                        <option value="sarah">Sarah (Soft Female)</option>
+                                    </select>
+                                </div>
+
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-semibold ml-1">Voice Selection</label>
-                                        <select 
-                                            value={voiceId} onChange={e => setVoiceId(e.target.value)}
-                                            className="w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all appearance-none"
-                                        >
-                                            <option value="andrew">Andrew (Professional Male)</option>
-                                            <option value="emma">Emma (Warm Female)</option>
-                                            <option value="brian">Brian (Deep Male)</option>
-                                            <option value="sarah">Sarah (Soft Female)</option>
-                                        </select>
-                                    </div>
                                     <div className="space-y-2">
                                         <label className="text-sm font-semibold ml-1">Knowledge File (for RAG)</label>
                                         <div className="relative group">
@@ -383,6 +395,44 @@ export default function AIDoctorsPage() {
                                                 <Upload className="w-4 h-4" />
                                                 <span className="text-sm font-medium">{knowledgeFile ? knowledgeFile.name : "Upload Knowledge Base"}</span>
                                             </label>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-semibold ml-1">Doctor Photo</label>
+                                        <div className="relative group flex items-center gap-4">
+                                            <div className="relative">
+                                                <input 
+                                                    type="file" accept="image/*"
+                                                    onChange={e => {
+                                                        const file = e.target.files?.[0] || null;
+                                                        setPhotoFile(file);
+                                                        if (file) {
+                                                            const reader = new FileReader();
+                                                            reader.onloadend = () => setPhotoPreview(reader.result as string);
+                                                            reader.readAsDataURL(file);
+                                                        } else {
+                                                            setPhotoPreview(null);
+                                                        }
+                                                    }}
+                                                    className="hidden" id="photo-upload"
+                                                />
+                                                <label 
+                                                    htmlFor="photo-upload"
+                                                    className="w-20 h-20 bg-slate-50 dark:bg-white/5 border border-dashed border-slate-300 dark:border-white/10 rounded-2xl flex flex-col items-center justify-center gap-1 cursor-pointer group-hover:border-blue-500 group-hover:text-blue-500 transition-all text-slate-500 overflow-hidden"
+                                                >
+                                                    {photoPreview ? (
+                                                        <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <>
+                                                            <Upload className="w-4 h-4" />
+                                                            <span className="text-[10px]">Photo</span>
+                                                        </>
+                                                    )}
+                                                </label>
+                                            </div>
+                                            <div className="flex-1">
+                                                <p className="text-xs text-slate-500">Upload a professional photo for the AI agent (JPEG, PNG).</p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

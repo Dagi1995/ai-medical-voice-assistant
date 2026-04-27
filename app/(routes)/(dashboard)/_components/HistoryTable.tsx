@@ -234,7 +234,7 @@ function HistoryTable({ historyList }: Props) {
           const colorGradient = getSpecialtyColor(specialty);
           const doctorName =
             record.selectedDoctor?.specialty || "Medical Specialist";
-          const doctorPhoto = record.selectedDoctor?.image;
+          const doctorPhoto = record.selectedDoctor?.image || record.selectedDoctor?.imageUrl;
           const isHovered = hoveredRow === record.id?.toString();
 
           return (
@@ -270,7 +270,7 @@ function HistoryTable({ historyList }: Props) {
                         />
                         <Avatar className="relative h-14 w-14 rounded-xl border-2 border-white shadow-lg">
                           <AvatarImage
-                            src={doctorPhoto}
+                            src={doctorPhoto ?? undefined}
                             alt={doctorName}
                             className="object-cover"
                           />
@@ -393,7 +393,7 @@ function HistoryTable({ historyList }: Props) {
                       />
                       <Avatar className="relative h-20 w-20 rounded-xl border-2 border-white shadow-lg">
                         <AvatarImage
-                          src={doctorPhoto}
+                          src={doctorPhoto ?? undefined}
                           alt={doctorName}
                           className="object-cover"
                         />

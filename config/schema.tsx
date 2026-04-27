@@ -35,7 +35,7 @@ export const aiDoctorsTable = pgTable("aiDoctors", {
   description: text().notNull(),
   agentPrompt: text().notNull(),
   voiceId: varchar({ length: 100 }),
-  imageUrl: varchar(),
+  imageUrl: text(),
   hasRag: boolean().default(false),
   createdOn: varchar(),
 });

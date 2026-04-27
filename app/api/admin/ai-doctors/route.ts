@@ -68,6 +68,16 @@ export async function POST(req: NextRequest) {
     const voiceId = formData.get("voiceId") as string;
     const imageUrl = formData.get("imageUrl") as string;
     const file = formData.get("knowledgeFile") as File | null;
+    const photoFile = formData.get("photoFile") as File | null;
+
+    let finalImageUrl = imageUrl;
+
+    // Handle photo upload (convert to Base64 for now)
+    if (photoFile) {
+      const buffer = Buffer.from(await photoFile.arrayBuffer());
+      const base64Image = buffer.toString("base64");
+      finalImageUrl = `data:${photoFile.type};base64,${base64Image}`;
+    }
 
     // 1. Create Doctor entry
     const doctorResult = await db
@@ -78,7 +88,7 @@ export async function POST(req: NextRequest) {
         description,
         agentPrompt,
         voiceId,
-        imageUrl,
+        imageUrl: finalImageUrl,
         hasRag: !!file,
         createdOn: new Date().toISOString(),
       })

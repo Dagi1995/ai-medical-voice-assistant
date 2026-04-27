@@ -66,7 +66,7 @@ function ViewReportDialog({ record }: props) {
   const specialty = record.selectedDoctor?.specialty || "General";
   const IconComponent = specialtyIcon[specialty] || Stethoscope;
   const doctorName = record.selectedDoctor?.specialty || "Medical Specialist";
-  const doctorPhoto = record.selectedDoctor?.image;
+  const doctorPhoto = record.selectedDoctor?.image || record.selectedDoctor?.imageUrl;
 
   // Parse the report if it exists
   const reportData = record.report
@@ -195,7 +195,7 @@ function ViewReportDialog({ record }: props) {
               <div className="flex flex-col sm:flex-row items-start gap-4">
                 <Avatar className="h-16 w-16 sm:h-20 sm:w-20 rounded-xl border-2 border-white shadow-lg">
                   <AvatarImage
-                    src={doctorPhoto}
+                    src={doctorPhoto ?? undefined}
                     alt={doctorName}
                     className="object-cover"
                   />
