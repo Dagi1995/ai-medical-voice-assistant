@@ -1,7 +1,4 @@
-import { boolean, integer, json, pgTable, text, timestamp, varchar } from "drizzle-orm/pg-core";
-import { report } from "process";
-
-import { integer, json, pgTable, text, varchar, timestamp, boolean, customType } from "drizzle-orm/pg-core";
+import { customType, integer, json, pgTable, text, varchar, timestamp, boolean } from "drizzle-orm/pg-core";
 
 // Custom vector type for pgvector
 const vector = customType<{ data: number[]; config: { dimensions: number } }>({
@@ -18,7 +15,7 @@ const vector = customType<{ data: number[]; config: { dimensions: number } }>({
       .map((v: string) => parseFloat(v));
   },
 });
- (chore: cleanup temporary test scripts and scratch files)
+
 
 export const usersTable = pgTable("users", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
