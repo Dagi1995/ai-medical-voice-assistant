@@ -11,6 +11,7 @@ import {
 import { ModeToggle } from "@/app/(routes)/(dashboard)/_components/DarkMood";
 import { signOut, useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
+import { NotificationBadge } from "@/components/NotificationBadge";
 
 const sidebarLinks = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
@@ -102,6 +103,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
           <div className="flex items-center gap-2 lg:gap-4">
             <ModeToggle />
+<<<<<<< HEAD
             <div className="relative p-2 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/10 transition-colors cursor-pointer mr-2">
               <Bell className="w-5 h-5" />
               <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white dark:ring-[#0a0a0a]" />
@@ -112,6 +114,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               title="Log out"
             >
                <span className="font-bold text-slate-500">{session?.user?.name?.charAt(0)?.toUpperCase() || "A"}</span>
+=======
+            <NotificationBadge href="/admin/notifications" />
+            <div className="h-10 w-10 shrink-0 rounded-full ring-2 ring-slate-200 dark:ring-white/10 overflow-hidden">
+               <UserButton appearance={{ elements: { userButtonAvatarBox: "w-full h-full" } }} />
+>>>>>>> origin/main
             </div>
           </div>
         </header>

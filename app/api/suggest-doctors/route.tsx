@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const completion = await openai.chat.completions.create({
-      model: "arcee-ai/trinity-large-preview:free",
+      model: "nvidia/nemotron-3-super-120b-a12b:free",
       messages: [
         { role: "system", content: JSON.stringify(AIDoctorAgents) },
         {

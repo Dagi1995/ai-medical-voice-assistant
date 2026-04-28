@@ -1,18 +1,70 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion } from "motion/react";
 import { Search, Shield, ShieldBan, MoreVertical, ActivitySquare } from "lucide-react";
+import socket from "@/lib/socket";
 import { Button } from "@/components/ui/button";
 
-const mockUsers = [
-    { id: "1", name: "Alice Freeman", email: "alice@example.com", role: "Patient", status: "Active", lastActive: "10 mins ago" },
-    { id: "2", name: "Dr. Robert Chen", email: "robert@medical.ai", role: "Doctor", status: "Active", lastActive: "1 hour ago" },
-    { id: "3", name: "Sarah Williams", email: "sarah.w@example.com", role: "Patient", status: "Blocked", lastActive: "2 days ago" },
-    { id: "4", name: "Michael Chang", email: "m.chang@example.com", role: "Patient", status: "Active", lastActive: "Just now" },
-    { id: "5", name: "Emma Thompson", email: "emma.t@admin.ai", role: "Admin", status: "Active", lastActive: "5 mins ago" },
-];
-
 export default function UserManagementPage() {
+    const [users, setUsers] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    const fetchUsers = async () => {
+        try {
+            setLoading(true);
+            const response = await fetch("/api/admin/users");
+            const data = await response.json();
+            
+            const formattedUsers = data.map((u: any) => ({
+                id: String(u.id),
+                name: u.name,
+                email: u.email,
+                role: u.role || "Patient",
+                status: "Active",
+                lastActive: "Just now"
+            }));
+            setUsers(formattedUsers);
+        } catch (error) {
+            console.error("Error fetching users:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchUsers();
+
+        const handleUserUpdate = (updatedUsers: any[]) => {
+            console.log("[Socket] user:update received", updatedUsers);
+            
+            const formattedUsers = updatedUsers.map(u => ({
+                id: String(u.id),
+                name: u.name,
+                email: u.email,
+                role: u.role || "Patient",
+                status: "Active",
+                lastActive: "Just now"
+            }));
+            
+            setUsers(formattedUsers);
+        };
+
+        socket.on("user:update", handleUserUpdate);
+
+        return () => {
+            socket.off("user:update", handleUserUpdate);
+        };
+    }, []);
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            </div>
+        );
+    }
+
     return (
         <div className="max-w-7xl mx-auto space-y-8">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -46,7 +98,7 @@ export default function UserManagementPage() {
                             </tr>
                         </thead>
                         <tbody>
-                            {mockUsers.map((user, i) => (
+                            {users.map((user, i) => (
                                 <tr key={user.id} className="border-b border-slate-100 dark:border-white/5 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
                                     <td className="px-6 py-4">
                                         <div className="flex items-center">
@@ -60,7 +112,7 @@ export default function UserManagementPage() {
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">
-                                        [4/8/2026 5:37 AM] Boni: <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-white/10 text-slate-800 dark:text-slate-200">
+                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-white/10 text-slate-800 dark:text-slate-200">
                                             {user.role}
                                         </span>
                                     </td>

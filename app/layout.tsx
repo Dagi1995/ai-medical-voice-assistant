@@ -7,10 +7,12 @@ import Provider from "./provider";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "@/components/theme-provider";
 
+import { LanguageProvider } from "@/lib/LanguageContext";
+
 // Replacing the legacy fonts with modern counterparts suited for an AI tool.
 // Utilizing variable names expected by internal stylesheets but overriding default typography.
 const outfit = Outfit({
-  variable: "--font-geist-sans", 
+  variable: "--font-geist-sans",
   subsets: ["latin"],
 });
 

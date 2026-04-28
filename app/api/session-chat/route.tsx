@@ -1,10 +1,10 @@
-import { db } from "@/lib/db";
-import { sessionsChatTable } from "@/config/schema";
+import { db } from "@/config/db";
+import { sessionsChatTable, notificationsTable } from "@/config/schema";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { NextRequest, NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, sql } from "drizzle-orm";
 
 export async function POST(req: NextRequest) {
   try {
@@ -23,6 +23,20 @@ export async function POST(req: NextRequest) {
         createdOn: new Date().toISOString(),
       })
       .returning();
+
+    // Create notification
+    if (userEmail) {
+      await db.insert(notificationsTable).values({
+        userId: userEmail,
+        title: 'Appointment Created',
+        message: 'Your appointment has been successfully created.',
+        type: 'success',
+      });
+      await db.execute(sql`NOTIFY notification_update`);
+    }
+
+    // Emit real-time PostgreSQL NOTIFY trigger
+    await db.execute(sql`NOTIFY appointment_update, 'appointment_changed'`);
 
     return NextResponse.json(result[0]);
   } catch (e) {

@@ -28,4 +28,7 @@ if (require.main === module) {
   });
 }
 
+// Import the DB listener to start watching PostgreSQL NOTIFY events
+import "./db-listener";
+
 export { io, httpServer };

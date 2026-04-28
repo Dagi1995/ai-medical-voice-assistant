@@ -84,4 +84,4 @@ export class AddisAPI {
   }
 }
 
-export const addisClient = new AddisAPI(process.env.ADDIS_API_KEY || "");
+export const addisClient = new AddisAPI(process.env.NEXT_PUBLIC_ADDIS_API_KEY || "");
