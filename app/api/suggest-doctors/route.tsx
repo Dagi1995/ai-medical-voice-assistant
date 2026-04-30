@@ -1,6 +1,6 @@
-// /api/suggest-doctors.ts
+import { db } from "@/config/db";
+import { aiDoctorsTable } from "@/config/schema";
 import { openai } from "@/config/OpenAiModel";
-import { AIDoctorAgents } from "@/app/shared/list";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
@@ -12,10 +12,12 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    const doctors = await db.select().from(aiDoctorsTable);
+
     const completion = await openai.chat.completions.create({
-      model: "nvidia/nemotron-3-super-120b-a12b:free",
+      model: "gemini-flash-latest",
       messages: [
-        { role: "system", content: JSON.stringify(AIDoctorAgents) },
+        { role: "system", content: JSON.stringify(doctors) },
         {
           role: "user",
           content:

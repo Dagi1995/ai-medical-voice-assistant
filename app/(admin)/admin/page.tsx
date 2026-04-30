@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
-import { Users, Calendar, MessageSquare, Activity, ArrowUpRight, ArrowDownRight, X, UserPlus, Clock, AlertTriangle, AlertCircle, Info, Bell } from "lucide-react";
+import { Users, Calendar, MessageSquare, Activity, ArrowUpRight, ArrowDownRight, X, UserPlus, Clock, AlertTriangle, AlertCircle, Info, Bell, Pill } from "lucide-react";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   BarChart, Bar, Legend
@@ -15,8 +15,8 @@ export default function AdminDashboard() {
   const router = useRouter();
   const [data, setData] = useState<{
     totalUsers: string;
-    activeAppointments: string;
-    aiInteractions: string;
+    totalSessions: string;
+    totalDoctors: string;
     systemHealth: string;
     usageData: any[];
     symptomData: any[];
@@ -99,8 +99,8 @@ export default function AdminDashboard() {
 
   const kpiData = [
     { title: "Total Users", value: data.totalUsers, trend: "+14%", isPositive: true, icon: Users, color: "text-blue-500", bg: "bg-blue-500/10", route: "/admin/users" },
-    { title: "Active Appointments", value: data.activeAppointments, trend: "+5%", isPositive: true, icon: Calendar, color: "text-purple-500", bg: "bg-purple-500/10", route: "/admin/appointments" },
-    { title: "AI Interactions", value: data.aiInteractions, trend: "+22%", isPositive: true, icon: MessageSquare, color: "text-pink-500", bg: "bg-pink-500/10", route: "/admin/ai-monitoring" },
+    { title: "AI Doctors", value: data.totalDoctors, trend: "+5%", isPositive: true, icon: Pill, color: "text-purple-500", bg: "bg-purple-500/10", route: "/admin/ai-doctors" },
+    { title: "AI Sessions", value: data.totalSessions, trend: "+22%", isPositive: true, icon: MessageSquare, color: "text-pink-500", bg: "bg-pink-500/10", route: "/admin/ai-monitoring" },
     { title: "System Health", value: data.systemHealth, trend: "-0.1%", isPositive: false, icon: Activity, color: "text-emerald-500", bg: "bg-emerald-500/10", route: "/admin/system-health" },
   ];
 
@@ -375,13 +375,13 @@ export default function AdminDashboard() {
             </button>
 
             <button 
-              onClick={() => router.push('/admin/appointments/new')}
+              onClick={() => router.push('/admin/ai-doctors')}
               className="flex items-center gap-3 p-4 rounded-2xl border border-slate-200 dark:border-white/10 hover:border-purple-500 hover:bg-purple-50 dark:hover:bg-purple-500/10 hover:text-purple-600 dark:hover:text-purple-400 transition-all text-slate-700 dark:text-slate-300 font-medium group text-sm"
             >
               <div className="p-2 rounded-xl bg-slate-100 dark:bg-white/10 group-hover:bg-purple-100 dark:group-hover:bg-purple-500/20 transition-colors">
-                <Calendar className="w-5 h-5" />
+                <Pill className="w-5 h-5" />
               </div>
-              <span className="flex-1 text-left">Create Appointment</span>
+              <span className="flex-1 text-left">Manage AI Doctors</span>
               <ArrowUpRight className="w-4 h-4 opacity-50 group-hover:opacity-100" />
             </button>
 

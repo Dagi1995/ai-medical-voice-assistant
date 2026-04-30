@@ -22,6 +22,7 @@ export async function POST(req: NextRequest) {
           //@ts-ignore
           name: session?.user?.name,
           email: session?.user?.email,
+          password: "external_oauth_user", // Placeholder for external auth
           credits: 10,
         })
         //@ts-ignore

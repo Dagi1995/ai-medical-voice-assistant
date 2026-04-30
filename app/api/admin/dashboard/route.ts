@@ -1,93 +1,111 @@
-import { NextResponse } from 'next/server';
 import { db } from '@/config/db';
-import { usersTable, sessionsChatTable } from '@/config/schema';
-import { sql } from 'drizzle-orm';
+import { usersTable, sessionsChatTable, aiDoctorsTable } from '@/config/schema';
+import { count, desc, sql, gte } from 'drizzle-orm';
+import { NextResponse } from 'next/server';
+import moment from 'moment';
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const range = searchParams.get('range') || 'weekly';
 
-    // Self-healing: Ensure status column exists
-    try {
-      await db.execute(sql`ALTER TABLE "sessionsChatTable" ADD COLUMN IF NOT EXISTS "status" VARCHAR DEFAULT 'Pending'`);
-    } catch (e) {
-      // Column probably exists, ignore
+    // 1. Fetch Total Counts
+    const [userCount] = await db.select({ value: count() }).from(usersTable);
+    const [sessionCount] = await db.select({ value: count() }).from(sessionsChatTable);
+    const [doctorCount] = await db.select({ value: count() }).from(aiDoctorsTable);
+
+    // 2. Fetch Recent Activities
+    const recentUsers = await db.select().from(usersTable).orderBy(desc(usersTable.id)).limit(5);
+    const recentSessions = await db.select().from(sessionsChatTable).orderBy(desc(sessionsChatTable.id)).limit(5);
+
+    const recentActivities = [
+      ...recentUsers.map(u => ({
+        id: `u-${u.id}`,
+        type: 'user',
+        title: `New User: ${u.name}`,
+        time: moment(u.lastActive || new Date()).fromNow()
+      })),
+      ...recentSessions.map(s => ({
+        id: `s-${s.id}`,
+        type: 'ai',
+        title: `Session with ${s.createdBy}`,
+        time: moment(s.createdOn).fromNow()
+      }))
+    ].sort((a, b) => b.id.localeCompare(a.id)).slice(0, 5);
+
+    // 3. Process Usage Data (Last 7 days for 'weekly')
+    let daysToFetch = range === 'daily' ? 1 : range === 'monthly' ? 30 : 7;
+    const startDate = moment().subtract(daysToFetch, 'days').startOf('day');
+    
+    // For usage chart, we'll fetch sessions from the last period
+    const allRecentSessions = await db.select().from(sessionsChatTable);
+    
+    const usageMap: Record<string, { queries: number, users: Set<string> }> = {};
+    
+    // Initialize map with dates
+    for (let i = 0; i < daysToFetch; i++) {
+      const dateStr = moment().subtract(i, 'days').format('MMM DD');
+      usageMap[dateStr] = { queries: 0, users: new Set() };
     }
 
-    // Fetch real metrics
-    const [userCount] = await db.select({ count: sql`count(*)` }).from(usersTable);
-    const [appointmentCount] = await db.select({ count: sql`count(*)` })
-      .from(sessionsChatTable)
-      .where(sql`${sessionsChatTable.status} != 'Cancelled' OR ${sessionsChatTable.status} IS NULL`);
+    allRecentSessions.forEach(session => {
+      const date = moment(session.createdOn);
+      const dateStr = date.format('MMM DD');
+      if (usageMap[dateStr]) {
+        usageMap[dateStr].queries += 1;
+        if (session.createdBy) usageMap[dateStr].users.add(session.createdBy);
+      }
+    });
 
-    // Recent activity (Last 5 records)
-    const recentSessions = await db.select().from(sessionsChatTable).orderBy(sql`${sessionsChatTable.id} DESC`).limit(5);
+    const usageData = Object.entries(usageMap).map(([name, stats]) => ({
+      name,
+      queries: stats.queries,
+      users: stats.users.size
+    })).reverse();
 
-    const recentActivities = recentSessions.map(session => ({
-      id: session.id,
-      type: 'appointment',
-      title: `Session with ${session.language || 'English'} speaker`,
-      time: session.createdOn || 'Recently'
-    }));
+    // 4. Process Symptom Data
+    const sessionsWithReports = await db.select().from(sessionsChatTable)
+      .where(sql`${sessionsChatTable.report} IS NOT NULL`);
+    
+    const symptomsMap: Record<string, number> = {};
+    sessionsWithReports.forEach(session => {
+      const report = session.report as any;
+      if (report && Array.isArray(report.symptoms)) {
+        report.symptoms.forEach((s: string) => {
+          const normalized = s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+          symptomsMap[normalized] = (symptomsMap[normalized] || 0) + 1;
+        });
+      }
+    });
 
-    // For charts, we'll keep some semi-dynamic data based on real records if possible
-    // Or just format them better. For now, let's keep the structure but use real counts.
+    const symptomData = Object.entries(symptomsMap)
+      .map(([symptom, count]) => ({ symptom, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
 
-    let usageData = [];
-    if (range === 'daily') {
-      usageData = [
-        { name: '00:00', queries: 200, users: 120 },
-        { name: '04:00', queries: 150, users: 80 },
-        { name: '08:00', queries: 800, users: Number(userCount.count) * 0.1 },
-        { name: '12:00', queries: 1200, users: Number(userCount.count) * 0.15 },
-        { name: '16:00', queries: 1100, users: Number(userCount.count) * 0.12 },
-        { name: '20:00', queries: 600, users: 400 },
-      ];
-    } else if (range === 'monthly') {
-      usageData = [
-        { name: 'Week 1', queries: 15000, users: Number(userCount.count) * 0.8 },
-        { name: 'Week 2', queries: 18000, users: Number(userCount.count) * 0.9 },
-        { name: 'Week 3', queries: 16500, users: Number(userCount.count) * 0.85 },
-        { name: 'Week 4', queries: 21000, users: Number(userCount.count) },
-      ];
-    } else {
-      usageData = [
-        { name: 'Mon', queries: 4000, users: 2400 },
-        { name: 'Tue', queries: 3000, users: 1398 },
-        { name: 'Wed', queries: 2000, users: 9800 },
-        { name: 'Thu', queries: 2780, users: 3908 },
-        { name: 'Fri', queries: 1890, users: 4800 },
-        { name: 'Sat', queries: 2390, users: 3800 },
-        { name: 'Sun', queries: 3490, users: 4300 },
-      ];
+    // If no symptom data, provide some realistic defaults
+    if (symptomData.length === 0) {
+      symptomData.push(
+        { symptom: 'Headache', count: 0 },
+        { symptom: 'Fever', count: 0 },
+        { symptom: 'Cough', count: 0 }
+      );
     }
 
     return NextResponse.json({
-      totalUsers: Number(userCount.count).toLocaleString(),
-      activeAppointments: Number(appointmentCount.count).toLocaleString(),
-      aiInteractions: (Number(appointmentCount.count) * 12).toLocaleString() + "+", // Estimate
+      totalUsers: userCount.value.toLocaleString(),
+      totalSessions: sessionCount.value.toLocaleString(),
+      totalDoctors: doctorCount.value.toLocaleString(),
       systemHealth: "99.9%",
       usageData,
-      symptomData: [
-        { symptom: 'Headache', count: 450 },
-        { symptom: 'Fever', count: 380 },
-        { symptom: 'Cough', count: 320 },
-        { symptom: 'Fatigue', count: 210 },
-        { symptom: 'Nausea', count: 150 },
-      ],
+      symptomData,
       recentActivities,
       alerts: [
-        { id: 101, type: 'critical', title: 'High-risk medical case detected', message: 'Recent AI analysis flagged a potential urgent case. Please review the appointments log.', time: 'Just now' },
-        { id: 103, type: 'info', title: 'Socket Cloud Connected', message: 'Backend synchronization is active and listening for DB state changes.', time: 'Ready' },
+        { id: 101, type: 'info', title: 'System Live', message: 'All systems operational. Monitoring active sessions.', time: 'Just now' }
       ]
     });
-  } catch (error: any) {
-    console.error('Dashboard API Error:', error);
-    return NextResponse.json({ 
-      error: 'Failed to fetch dashboard data',
-      message: error.message,
-      stack: error.stack 
-    }, { status: 500 });
+  } catch (error) {
+    console.error('Admin Dashboard API Error:', error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

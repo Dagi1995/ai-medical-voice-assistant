@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
       ", Conversation:" +
       JSON.stringify(message);
     const completion = await openai.chat.completions.create({
-      model: "nvidia/nemotron-3-super-120b-a12b:free",
+      model: "gemini-flash-latest",
       messages: [
         { role: "system", content: REPORT_GEN_PROMPT },
         { role: "user", content: UserInput },

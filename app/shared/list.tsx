@@ -1,102 +1,24 @@
-export const AIDoctorAgents = [
+export interface AIDoctorAgent {
+  specialty: string;
+  description: string;
+  agentPrompt: string;
+  voiceId: string;
+  image: string;
+}
+
+export const AIDoctorAgents: AIDoctorAgent[] = [
   {
-    id: 1,
     specialty: "General Physician",
-    description: "Helps with everyday health concerns and common symptoms.",
-    image: "/doctor1.png",
-    agentPrompt:
-      "You are a friendly General Physician speaking to a patient. Start with a warm greeting, then calmly ask what symptoms or health problems they are experiencing today. Keep your responses short, clear, and supportive, and ask only one simple follow-up question at a time.",
-    voiceId: "andrew",
-    subscriptionRequired: false,
+    description: "A dedicated General Physician providing comprehensive primary care, wellness advice, and initial symptom assessment for a wide range of health concerns.",
+    agentPrompt: "You are Dr. Alex, a knowledgeable and empathetic General Physician. Your goal is to help patients understand their symptoms, provide general health advice, and recommend when to seek in-person medical care. Always maintain a professional yet comforting tone.",
+    voiceId: "alloy",
+    image: "https://img.freepik.com/free-photo/doctor-offering-medical-teleconsultation-his-patient_23-2149329007.jpg"
   },
   {
-    id: 2,
     specialty: "Pediatrician",
-    description: "Expert in children's health, from babies to teens.",
-    image: "/doctor2.png",
-    agentPrompt:
-      "You are a kind Pediatrician AI. Ask brief questions about the child’s health and share quick, safe suggestions.",
-    voiceId: "chris",
-    subscriptionRequired: true,
-  },
-  {
-    id: 3,
-    specialty: "Dermatologist",
-    description: "Handles skin issues like rashes, acne, or infections.",
-    image: "/doctor3.png",
-    agentPrompt:
-      "You are a knowledgeable Dermatologist AI. Ask short questions about the skin issue and give simple, clear advice.",
-    voiceId: "sarge",
-    subscriptionRequired: true,
-  },
-  {
-    id: 4,
-    specialty: "Psychologist",
-    description: "Supports mental health and emotional well-being.",
-    image: "/doctor4.png",
-    agentPrompt:
-      "You are a caring Psychologist AI. Ask how the user is feeling emotionally and give short, supportive tips.",
-    voiceId: "susan",
-    subscriptionRequired: true,
-  },
-  {
-    id: 5,
-    specialty: "Nutritionist",
-    description: "Provides advice on healthy eating and weight management.",
-    image: "/doctor5.png",
-    agentPrompt:
-      "You are a motivating Nutritionist AI. Ask about current diet or goals and suggest quick, healthy tips.",
-    voiceId: "eileen",
-    subscriptionRequired: true,
-  },
-  {
-    id: 6,
-    specialty: "Cardiologist",
-    description: "Focuses on heart health and blood pressure issues.",
-    image: "/doctor6.png",
-    agentPrompt:
-      "You are a calm Cardiologist AI. Ask about heart symptoms and offer brief, helpful advice.",
-    voiceId: "charlotte",
-    subscriptionRequired: true,
-  },
-  {
-    id: 7,
-    specialty: "ENT specialty",
-    description: "Handles ear, nose, and throat-related problems.",
-    image: "/doctor7.png",
-    agentPrompt:
-      "You are a friendly ENT AI. Ask quickly about ENT symptoms and give simple, clear suggestions.",
-    voiceId: "ayla",
-    subscriptionRequired: true,
-  },
-  {
-    id: 8,
-    specialty: "Orthopedic",
-    description: "Helps with bone, joint, and muscle pain.",
-    image: "/doctor8.png",
-    agentPrompt:
-      "You are an understanding Orthopedic AI. Ask where the pain is and give short, supportive advice.",
-    voiceId: "aaliyah",
-    subscriptionRequired: true,
-  },
-  {
-    id: 9,
-    specialty: "Gynecologist",
-    description: "Cares for women’s reproductive and hormonal health.",
-    image: "/doctor9.png",
-    agentPrompt:
-      "You are a respectful Gynecologist AI. Ask brief, gentle questions and keep answers short and reassuring.",
-    voiceId: "hudson",
-    subscriptionRequired: true,
-  },
-  {
-    id: 10,
-    specialty: "Dentist",
-    description: "Handles oral hygiene and dental problems.",
-    image: "/doctor10.png",
-    agentPrompt:
-      "You are a cheerful Dentist AI. Ask about the dental issue and give quick, calming suggestions.",
-    voiceId: "atlas",
-    subscriptionRequired: true,
-  },
+    description: "Specialized in the physical, emotional, and social health of infants, children, adolescents, and young adults.",
+    agentPrompt: "You are Dr. Sarah, a warm and friendly Pediatrician. You specialize in child health and development. When talking to parents, be reassuring and clear. When talking to children, be gentle and encouraging.",
+    voiceId: "echo",
+    image: "https://img.freepik.com/free-photo/woman-doctor-wearing-lab-coat-with-stethoscope-isolated_1303-29791.jpg"
+  }
 ];

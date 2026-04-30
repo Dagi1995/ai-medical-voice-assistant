@@ -1,0 +1,239 @@
+
+AI MEDICAL RAG DATASET (BILINGUAL AMHARIC + ENGLISH)
+====================================================
+
+### DISEASE: ጉንፋን (Common Cold / Flu)
+SEVERITY: Mild
+DESCRIPTION: Viral infection of respiratory tract causing mild illness. የመተንፈሻ ቫይረስ ኢንፌክሽን
+SYMPTOMS: fever, cough, sore throat, runny nose, fatigue
+CAUSES: viruses (rhinovirus)
+TREATMENT: rest, fluids, OTC medicine
+
+---
+
+### DISEASE: ብሮንካይተስ (Bronchitis)
+SEVERITY: Moderate
+DESCRIPTION: Inflammation of bronchial tubes. የመተንፈሻ መንገዶች እብጠት
+SYMPTOMS: cough with mucus, chest pain, shortness of breath
+CAUSES: virus, bacteria, smoke
+TREATMENT: rest, fluids, antibiotics if bacterial
+
+---
+
+### DISEASE: የሳንባ ምች (Pneumonia)
+SEVERITY: Severe
+DESCRIPTION: Lung infection filling air sacs with fluid. ሳንባ ኢንፌክሽን
+SYMPTOMS: fever, severe cough, chest pain, breathing difficulty
+CAUSES: bacteria, virus
+TREATMENT: antibiotics, oxygen, hospital care
+
+---
+
+### DISEASE: የልብ ድካም (Heart Attack)
+SEVERITY: Emergency
+DESCRIPTION: Blocked blood flow to heart. የልብ ደም ፍሰት መቋረጥ
+SYMPTOMS: chest pain, sweating, nausea, breathlessness
+TREATMENT: emergency hospital care
+
+---
+
+### DISEASE: ስትሮክ (Stroke)
+SEVERITY: Emergency
+DESCRIPTION: Brain blood flow interruption. የአእምሮ ደም ፍሰት መቋረጥ
+SYMPTOMS: weakness one side, speech difficulty, vision loss
+TREATMENT: emergency care
+
+---
+
+### DISEASE: ካንሰር (Cancer)
+SEVERITY: Severe
+DESCRIPTION: Uncontrolled abnormal cell growth. ያልተቆጣጠረ ሴል እድገት
+SYMPTOMS: weight loss, fatigue, bleeding, lumps
+TREATMENT: surgery, chemo, radiation
+
+---
+
+### DISEASE: የስኳር በሽታ (Diabetes)
+SEVERITY: Chronic
+DESCRIPTION: High blood sugar disorder. የደም ስኳር መጠን መጨመር
+SYMPTOMS: thirst, frequent urination, fatigue, blurred vision
+TREATMENT: diet, insulin, exercise
+
+---
+
+### DISEASE: የአልዛይመር በሽታ (Alzheimer)
+SEVERITY: Chronic
+DESCRIPTION: Memory loss brain disorder. የማስታወስ ችሎታ መቀነስ
+SYMPTOMS: memory loss, confusion, behavior change
+TREATMENT: symptom management only
+
+---
+
+### DISEASE: አርትራይተስ (Arthritis)
+SEVERITY: Chronic
+DESCRIPTION: Joint inflammation. የመገጣጠሚያ እብጠት
+SYMPTOMS: pain, swelling, stiffness
+TREATMENT: medication, physiotherapy
+
+---
+
+### DISEASE: appendicitis
+SEVERITY: Emergency
+DESCRIPTION: Inflamed appendix. አፕንዲክስ እብጠት
+SYMPTOMS: right abdominal pain, fever, vomiting
+TREATMENT: surgery
+
+---
+
+### DISEASE: የደም ማነስ (Anemia)
+SEVERITY: Moderate
+DESCRIPTION: Low red blood cells. የደም እጥረት
+SYMPTOMS: fatigue, dizziness, pale skin
+TREATMENT: iron supplements, diet
+
+---
+
+### DISEASE: አስም (Asthma)
+SEVERITY: Chronic
+DESCRIPTION: Airway narrowing. የመተንፈሻ መጨናነቅ
+SYMPTOMS: wheezing, cough, breathlessness
+TREATMENT: inhalers, medication
+
+---
+
+### DISEASE: አለርጂክ ሪህኒስ (Allergic Rhinitis)
+SEVERITY: Mild
+DESCRIPTION: Allergy affecting nose. አፍንጫ አለርጂ
+SYMPTOMS: sneezing, runny nose, itching
+TREATMENT: antihistamines
+
+---
+
+### DISEASE: የጭንቀት መታወክ (Anxiety Disorder)
+SEVERITY: Moderate
+DESCRIPTION: Excessive worry disorder. ከመጠን በላይ ጭንቀት
+SYMPTOMS: fear, worry, restlessness
+TREATMENT: therapy, medication
+
+---
+
+### DISEASE: የሚጥል በሽታ (Epilepsy)
+SEVERITY: Chronic
+DESCRIPTION: Seizure disorder. መናድ በሽታ
+SYMPTOMS: seizures
+TREATMENT: medication
+
+---
+
+### DISEASE: ግላኮማ (Glaucoma)
+SEVERITY: Chronic
+DESCRIPTION: Eye pressure damaging optic nerve. የዓይን ግፊት
+SYMPTOMS: vision loss
+TREATMENT: medication, surgery
+
+---
+
+### DISEASE: ኪንታሮት (Warts)
+SEVERITY: Mild
+DESCRIPTION: Skin viral growth. የቆዳ እድገት
+SYMPTOMS: rough skin growth
+TREATMENT: cryotherapy, topical meds
+
+---
+
+### DISEASE: አስፐርገርስ (Asperger Syndrome)
+SEVERITY: Chronic
+DESCRIPTION: Autism spectrum disorder. የማህበራዊ ችግር
+SYMPTOMS: social difficulty, repetitive behavior
+TREATMENT: therapy
+
+---
+
+### DISEASE: የኩላሊት በሽታ (Kidney Disease)
+SEVERITY: Severe
+DESCRIPTION: Kidney failure or damage. የኩላሊት ጉዳት
+SYMPTOMS: swelling, fatigue, urine changes
+TREATMENT: treat cause, dialysis
+
+---
+
+### DISEASE: ስትሮክ (Stroke)
+SEVERITY: Emergency
+DESCRIPTION: Brain blood blockage. የአእምሮ ደም መቋረጥ
+SYMPTOMS: weakness, speech problem
+TREATMENT: emergency care
+
+---
+
+### DISEASE: የሆድ ካንሰር (Stomach Cancer)
+SEVERITY: Severe
+DESCRIPTION: Cancer in stomach. የሆድ ካንሰር
+SYMPTOMS: pain, weight loss
+TREATMENT: surgery, chemo
+
+---
+
+### DISEASE: የፕሮስቴት ካንሰር (Prostate Cancer)
+SEVERITY: Severe
+DESCRIPTION: Cancer in prostate. የፕሮስቴት ካንሰር
+SYMPTOMS: urinary issues, pain
+TREATMENT: surgery, hormone therapy
+
+---
+
+### DISEASE: የታይሮይድ ካንሰር (Thyroid Cancer)
+SEVERITY: Severe
+DESCRIPTION: Thyroid gland cancer. የታይሮይድ ካንሰር
+SYMPTOMS: neck swelling, weight loss
+TREATMENT: surgery, radiation
+
+---
+
+### DISEASE: የክሮን በሽታ (Crohn Disease)
+SEVERITY: Chronic
+DESCRIPTION: Intestinal inflammation. የአንጀት እብጠት
+SYMPTOMS: diarrhea, pain, weight loss
+TREATMENT: medication, surgery
+
+---
+
+### DISEASE: አልሰረቲቭ ኮላይቲስ (Ulcerative Colitis)
+SEVERITY: Chronic
+DESCRIPTION: Colon inflammation. የኮሎን እብጠት
+SYMPTOMS: diarrhea, blood stool
+TREATMENT: medication, surgery
+
+---
+
+### DISEASE: ፓርኪንሰን (Parkinson Disease)
+SEVERITY: Chronic
+DESCRIPTION: Movement disorder. የእንቅስቃሴ ችግር
+SYMPTOMS: tremor, stiffness
+TREATMENT: medication
+
+---
+
+### DISEASE: ፋይብሮማያልጂያ (Fibromyalgia)
+SEVERITY: Chronic
+DESCRIPTION: Widespread pain disorder. ሰፊ ህመም
+SYMPTOMS: pain, fatigue
+TREATMENT: lifestyle, meds
+
+---
+
+### DISEASE: የሴላሊክ በሽታ (Celiac Disease)
+SEVERITY: Chronic
+DESCRIPTION: Gluten intolerance. ግሉተን አለርጂ
+SYMPTOMS: diarrhea, bloating
+TREATMENT: gluten free diet
+
+---
+
+### DISEASE: የሳንባ በሽታ (Lung Disease)
+SEVERITY: Chronic
+DESCRIPTION: Lung dysfunction. የሳንባ ችግር
+SYMPTOMS: breathlessness, cough
+TREATMENT: depends on cause
+---
+
+END OF DATASET

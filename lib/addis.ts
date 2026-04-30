@@ -60,7 +60,7 @@ export class AddisAPI {
     return await response.json();
   }
 
-  async textToSpeech(text: string, language: string = "am") {
+  async textToSpeech(text: string, language: string = "am", voiceId?: string) {
     // Ensuring the endpoint is exactly /v1/audio per user input and typical Addis design
     const response = await fetch(`${this.baseUrl}/v1/audio`, {
       method: "POST",
@@ -71,6 +71,7 @@ export class AddisAPI {
       body: JSON.stringify({
         text: text,
         language: language,
+        voice_id: voiceId, // Adding voice_id support
         stream: false,
       }),
     });
