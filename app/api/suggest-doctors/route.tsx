@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
           content:
             "User Notes/Symptoms: " +
             notes +
-            '. Suggest relevant doctors from the above list. Return only JSON in this format: { "suggestedDoctors": [ ... ] }',
+            '. Suggest relevant doctors from the above list. Return an array of their IDs. Return only JSON in this format: { "suggestedDoctorIds": [ 1, 2, ... ] }',
         },
       ],
     });
@@ -40,17 +40,32 @@ export async function POST(req: NextRequest) {
       parsed = JSON.parse(cleaned);
     } catch {
       console.error("Failed to parse AI response:", cleaned);
-      parsed = { suggestedDoctors: [] };
+      parsed = { suggestedDoctorIds: [] };
     }
 
-    // Ensure payload always has suggestedDoctors key
-    if (Array.isArray(parsed)) {
-      parsed = { suggestedDoctors: parsed };
-    } else if (!parsed.suggestedDoctors) {
-      parsed = { suggestedDoctors: [] };
+    let suggestedDoctors: any[] = [];
+    if (parsed.suggestedDoctorIds && Array.isArray(parsed.suggestedDoctorIds)) {
+      suggestedDoctors = parsed.suggestedDoctorIds
+        .map((id: any) => doctors.find((d) => d.id === Number(id)))
+        .filter(Boolean);
+    } else if (parsed.suggestedDoctors && Array.isArray(parsed.suggestedDoctors)) {
+      // Fallback if AI still returns suggestedDoctors array of objects
+      suggestedDoctors = parsed.suggestedDoctors
+        .map((d: any) => doctors.find((doc) => doc.id === d.id || doc.name === d.name))
+        .filter(Boolean);
+    } else if (Array.isArray(parsed)) {
+      // Fallback if AI returns just an array of IDs or objects
+      suggestedDoctors = parsed
+        .map((item: any) => {
+          if (typeof item === "number" || typeof item === "string") {
+            return doctors.find((d) => d.id === Number(item));
+          }
+          return doctors.find((doc) => doc.id === item.id || doc.name === item.name);
+        })
+        .filter(Boolean);
     }
 
-    return NextResponse.json(parsed);
+    return NextResponse.json({ suggestedDoctors });
   } catch (e) {
     console.error("AI request failed:", e);
     return NextResponse.json(

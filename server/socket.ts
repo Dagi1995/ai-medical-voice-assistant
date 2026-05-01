@@ -1,3 +1,6 @@
+import * as dotenv from "dotenv";
+dotenv.config();
+
 import { Server } from "socket.io";
 import { createServer } from "http";
 
