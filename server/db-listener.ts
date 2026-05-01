@@ -24,7 +24,7 @@ class DatabaseListener {
     if (this.isShuttingDown) return;
 
     if (this.client) {
-      await this.client.end().catch(() => {});
+      await this.client.end().catch(() => { });
     }
 
     this.client = new Client({
@@ -43,7 +43,7 @@ class DatabaseListener {
 
     this.client.on('notification', async (msg) => {
       console.log(`[DB Notification] Channel: ${msg.channel}`);
-      
+
       try {
         // Handle Socket mapping
         if (msg.channel === 'user_update') {
@@ -73,14 +73,14 @@ class DatabaseListener {
     try {
       await this.client.connect();
       console.log('Connected to PostgreSQL for LISTEN/NOTIFY.');
-      
+
       // Start listening to the required channels
       await this.client.query('LISTEN user_update');
       await this.client.query('LISTEN appointment_update');
       await this.client.query('LISTEN notification_update');
-      
+
       console.log('Listening to channels: "user_update", "appointment_update", "notification_update"');
-      
+
       // Clear any pending reconnects
       if (this.reconnectTimeout) {
         clearTimeout(this.reconnectTimeout);
@@ -94,7 +94,7 @@ class DatabaseListener {
 
   private scheduleReconnect() {
     if (this.isShuttingDown || this.reconnectTimeout) return;
-    
+
     console.log(`Attempting to reconnect in ${this.reconnectInterval / 1000}s...`);
     this.reconnectTimeout = setTimeout(() => {
       this.reconnectTimeout = null;

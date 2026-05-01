@@ -3,7 +3,6 @@ import { Outfit, JetBrains_Mono } from "next/font/google";
 //@ts-ignore
 import "./globals.css";
 
-import { ClerkProvider } from "@clerk/nextjs";
 import Provider from "./provider";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -13,7 +12,7 @@ import { LanguageProvider } from "@/lib/LanguageContext";
 // Replacing the legacy fonts with modern counterparts suited for an AI tool.
 // Utilizing variable names expected by internal stylesheets but overriding default typography.
 const outfit = Outfit({
-  variable: "--font-geist-sans", 
+  variable: "--font-geist-sans",
   subsets: ["latin"],
 });
 
@@ -33,26 +32,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ClerkProvider>
-      <html lang="en" suppressHydrationWarning>
-        <body
-          className={`${outfit.variable} ${jetbrainsMono.variable} ${outfit.className} antialiased`}
+    <html lang="en" suppressHydrationWarning>
+      <body
+        className={`${outfit.variable} ${jetbrainsMono.variable} ${outfit.className} antialiased`}
+      >
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem
+          disableTransitionOnChange
         >
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="light"
-            enableSystem
-            disableTransitionOnChange
-          >
-            <LanguageProvider>
-              <Provider>
-                {children}
-                <Toaster />
-              </Provider>
-            </LanguageProvider>
-          </ThemeProvider>
-        </body>
-      </html>
-    </ClerkProvider>
+          <Provider>
+            {children}
+            <Toaster />
+          </Provider>
+        </ThemeProvider>
+      </body>
+    </html>
   );
 }

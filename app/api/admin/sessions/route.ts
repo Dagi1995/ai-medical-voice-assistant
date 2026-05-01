@@ -1,17 +1,18 @@
 import { db } from "@/config/db";
 import { sessionsChatTable, usersTable } from "@/config/schema";
-import { currentUser } from "@clerk/nextjs/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { eq, desc } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 
 async function isAdmin() {
-  const user = await currentUser();
-  if (!user) return false;
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.email) return false;
   
   const dbUser = await db
     .select()
     .from(usersTable)
-    .where(eq(usersTable.email, user.primaryEmailAddress?.emailAddress || ""))
+    .where(eq(usersTable.email, session.user.email))
     .limit(1);
     
   return dbUser[0]?.role === "Admin";

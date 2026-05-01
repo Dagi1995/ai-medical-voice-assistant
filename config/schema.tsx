@@ -1,4 +1,4 @@
-import { customType, integer, json, pgTable, text, varchar, timestamp, boolean } from "drizzle-orm/pg-core";
+import { customType, integer, json, pgTable, text, varchar, timestamp, boolean, uuid } from "drizzle-orm/pg-core";
 
 // Custom vector type for pgvector
 const vector = customType<{ data: number[]; config: { dimensions: number } }>({
@@ -18,9 +18,10 @@ const vector = customType<{ data: number[]; config: { dimensions: number } }>({
 
 
 export const usersTable = pgTable("users", {
-  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  id: uuid("id").primaryKey().defaultRandom(),
   name: varchar({ length: 255 }).notNull(),
   email: varchar({ length: 255 }).notNull().unique(),
+  password: varchar().notNull(),
   credits: integer().default(0),
   role: varchar({ length: 20 }).default("Patient"), // Patient, Admin
   status: varchar({ length: 20 }).default("Active"), // Active, Blocked

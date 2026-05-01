@@ -1,6 +1,7 @@
 import { db } from "@/config/db";
 import { aiDoctorsTable, aiDoctorKnowledgeTable, usersTable } from "@/config/schema";
-import { currentUser } from "@clerk/nextjs/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { eq, desc } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
@@ -8,13 +9,13 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 const genAI = new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GEMINI_API_KEY!);
 
 async function isAdmin() {
-  const user = await currentUser();
-  if (!user) return false;
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.email) return false;
   
   const dbUser = await db
     .select()
     .from(usersTable)
-    .where(eq(usersTable.email, user.primaryEmailAddress?.emailAddress || ""))
+    .where(eq(usersTable.email, session.user.email))
     .limit(1);
     
   return dbUser[0]?.role === "Admin";

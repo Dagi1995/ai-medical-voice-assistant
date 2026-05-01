@@ -5,7 +5,7 @@ import { motion, useScroll, useTransform } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { MedicalVoiceAgentDemo } from "./_components/Feature3dGrid";
 import PharmacyFinder from "@/components/pharmacy-finder";
-import { UserButton, useUser } from "@clerk/nextjs";
+import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import Image from "next/image";
@@ -104,7 +104,7 @@ export default function Home() {
             </p>
 
             <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
-              <Link href="/sign-in">
+              <Link href="/login">
                 <Button
                   onClick={() => {
                     toast("Welcome to MedAI🚀");
@@ -297,7 +297,7 @@ interface NavbarProps {
 }
 
 const Navbar = ({ opacity }: NavbarProps) => {
-  const { user } = useUser();
+  const { data: session } = useSession();
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -375,8 +375,8 @@ const Navbar = ({ opacity }: NavbarProps) => {
           }
         `}</style>
 
-        {!user ? (
-          <Link href="/sign-in">
+        {!session?.user ? (
+          <Link href="/login">
             <Button className="bg-gradient-to-r from-blue-500 to-purple-500 text-white cursor-pointer shadow-md border-0 rounded-full px-6">
               Login
             </Button>
@@ -384,7 +384,9 @@ const Navbar = ({ opacity }: NavbarProps) => {
         ) : (
           <div className="flex items-center gap-4">
             <ModeToggle />
-            <UserButton />
+            <Button onClick={() => signOut()} variant="outline" className="rounded-full">
+              Logout
+            </Button>
             <Link href="/home">
               <Button className="bg-gradient-to-r from-blue-500 to-purple-500 text-white cursor-pointer shadow-md border-0 rounded-full px-6">
                 Dashboard

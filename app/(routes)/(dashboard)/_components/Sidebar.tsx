@@ -3,11 +3,11 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { UserButton } from "@clerk/nextjs";
+import { signOut } from "next-auth/react";
 import { motion } from "motion/react";
-import { 
-  History, LayoutDashboard, Stethoscope, 
-  CreditCard, Settings, HeartPulse 
+import {
+  History, LayoutDashboard, Stethoscope,
+  CreditCard, Settings, HeartPulse, LogOut
 } from "lucide-react";
 
 export const menuOptions = [
@@ -61,14 +61,14 @@ const Sidebar = () => {
         {menuOptions.map((item) => {
           const Icon = item.icon;
           const isActive = pathname === item.path || (pathname === '/' && item.path === '/home');
-          
+
           return (
             <Link key={item.id} href={item.path}>
               <div className={`flex items-center px-4 py-3.5 mt-1 rounded-2xl transition-all duration-200 group relative ${isActive ? "bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 font-semibold" : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 hover:dark:bg-white/5"}`}>
                 {isActive && (
-                  <motion.div 
-                    layoutId="sidebar-indicator" 
-                    className="absolute left-0 w-1 h-8 bg-blue-600 dark:bg-blue-500 rounded-r-full" 
+                  <motion.div
+                    layoutId="sidebar-indicator"
+                    className="absolute left-0 w-1 h-8 bg-blue-600 dark:bg-blue-500 rounded-r-full"
                   />
                 )}
                 <Icon className={`w-5 h-5 mr-3 transition-transform ${isActive ? "scale-110" : "group-hover:scale-110"}`} />
@@ -79,23 +79,14 @@ const Sidebar = () => {
         })}
       </nav>
 
-      {/* Bottom Profile/Settings section with UserButton integration */}
+      {/* Bottom Profile/Settings section */}
       <div className="p-6 border-t border-slate-100 dark:border-white/5 gap-2 flex flex-col">
-        <div className="relative group flex items-center px-4 py-3.5 rounded-2xl cursor-pointer hover:bg-slate-100 dark:hover:bg-white/5 transition-all duration-200 border border-transparent hover:border-slate-200 dark:hover:border-white/10">
-          <div className="absolute inset-0 z-20 opacity-0 overflow-hidden cursor-pointer">
-            <UserButton 
-              afterSignOutUrl="/" 
-              appearance={{ 
-                elements: { 
-                  userButtonTrigger: { width: '100%', height: '100%', cursor: 'pointer' },
-                  rootBox: { width: '100%', height: '100%' }
-                } 
-              }} 
-            />
-          </div>
+        <div 
+          onClick={() => signOut()}
+          className="relative group flex items-center px-4 py-3.5 rounded-2xl cursor-pointer hover:bg-slate-100 dark:hover:bg-white/5 transition-all duration-200 border border-transparent hover:border-slate-200 dark:hover:border-white/10">
           <div className="flex items-center w-full">
-            <Settings className="w-5 h-5 mr-3 text-slate-600 dark:text-slate-400 group-hover:scale-110 transition-transform" />
-            <span className="font-medium text-[15px] text-slate-600 dark:text-slate-400">Account</span>
+            <LogOut className="w-5 h-5 mr-3 text-slate-600 dark:text-slate-400 group-hover:scale-110 transition-transform" />
+            <span className="font-medium text-[15px] text-slate-600 dark:text-slate-400">Log Out</span>
           </div>
         </div>
       </div>

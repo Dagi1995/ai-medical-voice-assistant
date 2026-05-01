@@ -1,8 +1,8 @@
 "use client";
 import { UserDetailContext } from "@/context/UserDetailContext";
-import { useUser } from "@clerk/nextjs";
 import axios from "axios";
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { SessionProvider, useSession } from "next-auth/react";
 
 export type UsersDetail = {
   name: string;
@@ -15,21 +15,30 @@ const Provider = ({
 }: Readonly<{
   children: React.ReactNode;
 }>) => {
-  const { user } = useUser();
+  return (
+    <SessionProvider>
+      <ProviderInner>{children}</ProviderInner>
+    </SessionProvider>
+  );
+};
+
+const ProviderInner = ({ children }: { children: React.ReactNode }) => {
+  const { data: session } = useSession();
   const [userDetail, setUserDetail] = useState<any>();
+  
   useEffect(() => {
-    user && CreateNewUser();
-  }, [user]);
-  const CreateNewUser = async () => {
-    const result = await axios.post("/api/user");
-    console.log(result);
-    setUserDetail(result.data);
-  };
+    if (session?.user) {
+      setUserDetail({
+        name: session.user.name,
+        email: session.user.email,
+        credits: 10,
+      });
+    }
+  }, [session]);
 
   return (
     <div>
       <UserDetailContext.Provider value={{ userDetail, setUserDetail }}>
-        {" "}
         {children}
       </UserDetailContext.Provider>
     </div>

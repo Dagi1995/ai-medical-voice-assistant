@@ -1,26 +1,28 @@
 import { db } from "@/config/db";
 import { usersTable } from "@/config/schema";
-import { currentUser } from "@clerk/nextjs/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { eq, sql } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
-  const user = await currentUser();
+  const session = await getServerSession(authOptions);
 
   try {
     const users = await db
       .select()
       .from(usersTable)
       //@ts-ignore
-      .where(eq(usersTable.email, user?.primaryEmailAddress?.emailAddress));
+      .where(eq(usersTable.email, session?.user?.email));
 
     if (users.length === 0) {
       const result = await db
         .insert(usersTable)
         .values({
           //@ts-ignore
-          name: user?.fullName,
-          email: user?.primaryEmailAddress?.emailAddress,
+          name: session?.user?.name,
+          email: session?.user?.email,
+          password: "external_oauth_user", // Placeholder for external auth
           credits: 10,
         })
         //@ts-ignore

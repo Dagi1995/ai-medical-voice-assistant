@@ -8,6 +8,20 @@
       "when": 1777141924972,
       "tag": "0000_known_hitman",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1777378278935,
+      "tag": "0001_supreme_garia",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1777422996038,
+      "tag": "0002_elite_zaran",
+      "breakpoints": true
     }
   ]
 }

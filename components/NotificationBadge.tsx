@@ -3,11 +3,11 @@
 import { Bell } from "lucide-react";
 import Link from "next/link";
 import { useNotifications } from "@/hook/useNotifications";
-import { useUser } from "@clerk/nextjs";
+import { useSession } from "next-auth/react";
 
 export function NotificationBadge({ href = "/notifications" }: { href?: string }) {
-  const { user } = useUser();
-  const { unreadCount } = useNotifications(user?.primaryEmailAddress?.emailAddress);
+  const { data: session } = useSession();
+  const { unreadCount } = useNotifications(session?.user?.email ?? undefined);
 
   return (
     <Link href={href}>

@@ -1,16 +1,16 @@
 "use client";
 
 import { useNotifications, Notification } from "@/hook/useNotifications";
-import { useUser } from "@clerk/nextjs";
+import { useSession } from "next-auth/react";
 import moment from "moment";
 import { Bell, Check, Trash2, CheckCircle2, AlertCircle, Info, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function NotificationsPage() {
-  const { user, isLoaded } = useUser();
-  const { notifications, markAsRead, clearAll } = useNotifications(user?.primaryEmailAddress?.emailAddress);
+  const { data: session, status } = useSession();
+  const { notifications, markAsRead, clearAll } = useNotifications(session?.user?.email ?? undefined);
 
-  if (!isLoaded) return <div className="flex p-8 justify-center items-center h-full"><div className="animate-pulse flex items-center space-x-2"><div className="w-4 h-4 bg-blue-400 rounded-full"></div><div className="text-blue-500 font-medium">Loading notifications...</div></div></div>;
+  if (status === "loading") return <div className="flex p-8 justify-center items-center h-full"><div className="animate-pulse flex items-center space-x-2"><div className="w-4 h-4 bg-blue-400 rounded-full"></div><div className="text-blue-500 font-medium">Loading notifications...</div></div></div>;
 
   const getIconForType = (type: string) => {
     switch (type) {
