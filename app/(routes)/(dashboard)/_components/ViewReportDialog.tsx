@@ -33,6 +33,10 @@ import {
   CheckCircle2,
   AlertCircle,
   Info,
+  MapPin,
+  ExternalLink,
+  Pill,
+  Building2,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 
@@ -334,7 +338,9 @@ function ViewReportDialog({ record }: props) {
                   </h4>
 
                   <div className="space-y-3 sm:space-y-4">
-                    {Object.entries(reportData).map(([key, value]) => (
+                    {Object.entries(reportData)
+                      .filter(([key]) => key !== "nearby_facilities")
+                      .map(([key, value]) => (
                       <div
                         key={key}
                         className={`border-b pb-2 sm:pb-3 last:border-0 ${
@@ -361,6 +367,87 @@ function ViewReportDialog({ record }: props) {
                     ))}
                   </div>
                 </div>
+
+                {/* Nearby Facilities Section */}
+                {reportData.nearby_facilities && Array.isArray(reportData.nearby_facilities) && reportData.nearby_facilities.length > 0 && (
+                  <>
+                    <Separator
+                      className={`my-2 sm:my-4 ${
+                        isDark ? "bg-gray-800" : "bg-gray-200"
+                      }`}
+                    />
+                    <div
+                      className={`p-4 sm:p-6 rounded-xl border ${
+                        isDark
+                          ? "bg-gray-800/50 border-blue-900"
+                          : "bg-gradient-to-br from-blue-50 to-white border-blue-200"
+                      }`}
+                    >
+                      <h4
+                        className={`text-base sm:text-lg font-semibold mb-3 sm:mb-4 flex items-center gap-2 ${
+                          isDark ? "text-gray-100" : "text-gray-900"
+                        }`}
+                      >
+                        <MapPin
+                          className={`h-4 w-4 sm:h-5 sm:w-5 ${
+                            isDark ? "text-blue-400" : "text-blue-500"
+                          }`}
+                        />
+                        Nearby Health Facilities
+                      </h4>
+                      <p className={`text-xs mb-4 ${isDark ? "text-gray-400" : "text-gray-500"}`}>
+                        Based on your location, here are some nearby facilities that might help.
+                      </p>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {reportData.nearby_facilities.map((facility: any, index: number) => {
+                          const isPharmacy = facility.type === "pharmacy";
+                          const isHospital = facility.type === "hospital";
+                          
+                          return (
+                            <div 
+                              key={facility.id || index}
+                              className={`p-3 rounded-lg border flex flex-col justify-between ${
+                                isDark ? "bg-gray-900 border-gray-700 hover:border-gray-600" : "bg-white border-gray-200 hover:border-gray-300"
+                              } transition-colors`}
+                            >
+                              <div className="flex items-start gap-3 mb-2">
+                                <div className={`p-2 rounded-md ${
+                                  isPharmacy ? (isDark ? "bg-green-900/30 text-green-400" : "bg-green-100 text-green-600") :
+                                  isHospital ? (isDark ? "bg-red-900/30 text-red-400" : "bg-red-100 text-red-600") :
+                                  (isDark ? "bg-blue-900/30 text-blue-400" : "bg-blue-100 text-blue-600")
+                                }`}>
+                                  {isPharmacy ? <Pill className="h-4 w-4" /> : 
+                                   isHospital ? <Building2 className="h-4 w-4" /> : 
+                                   <Activity className="h-4 w-4" />}
+                                </div>
+                                <div className="flex-1">
+                                  <h5 className={`font-medium text-sm line-clamp-1 ${isDark ? "text-gray-200" : "text-gray-800"}`}>
+                                    {facility.name}
+                                  </h5>
+                                  <p className={`text-xs capitalize ${isDark ? "text-gray-400" : "text-gray-500"}`}>
+                                    {facility.type} • {facility.distance_km} km away
+                                  </p>
+                                </div>
+                              </div>
+                              <a 
+                                href={`https://www.google.com/maps/dir/?api=1&destination=${facility.lat},${facility.lng}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={`text-xs flex items-center justify-center gap-1 mt-2 py-1.5 rounded-md border ${
+                                  isDark ? "border-gray-700 text-blue-400 hover:bg-gray-800" : "border-gray-200 text-blue-600 hover:bg-gray-50"
+                                } transition-colors w-full`}
+                              >
+                                <ExternalLink className="h-3 w-3" />
+                                Open in Maps
+                              </a>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </>
+                )}
               </>
             )}
 

@@ -5,6 +5,7 @@ import { Session } from "inspector/promises";
 import { db } from "@/lib/db";
 import { sessionsChatTable } from "@/config/schema";
 import { eq } from "drizzle-orm";
+import { getNearbyHealthFacilities } from "@/lib/overpass";
 
 const REPORT_GEN_PROMPT = `Yoi are an AI Medical Voice Agent that just finished a voice conversation with a user. Based on doctor AI agent info and Conversation between AI medical agent and user, generate a structured report with the following fields:
 
@@ -35,14 +36,14 @@ Return the result in this JSON format:{
 Only include valid fields. Respond with nothing else.
 `;
 export async function POST(request: NextRequest) {
-  const { sessionId, sessionDetail, message } = await request.json();
+  const { sessionId, sessionDetail, messages, latitude, longitude } = await request.json();
 
   try {
     const UserInput =
       "AI Doctor Agent Info:" +
       JSON.stringify(sessionDetail) +
       ", Conversation:" +
-      JSON.stringify(message);
+      JSON.stringify(messages);
     const completion = await openai.chat.completions.create({
       model: "gemini-flash-latest",
       messages: [
@@ -60,12 +61,22 @@ export async function POST(request: NextRequest) {
       .replace("```", "");
     const JSONResp = JSON.parse(resp);
 
+    // Fetch nearby health facilities if location is available
+    if (latitude && longitude) {
+      try {
+        const facilities = await getNearbyHealthFacilities(latitude, longitude, 5000); // 5km radius
+        JSONResp.nearby_facilities = facilities;
+      } catch (err) {
+        console.error("Failed to fetch facilities:", err);
+      }
+    }
+
     // Save to Database
     const result = await db
       .update(sessionsChatTable)
       .set({
         report: JSONResp,
-        conversation: message,
+        conversation: messages,
       })
       .where(eq(sessionsChatTable.sessionId, sessionId));
 

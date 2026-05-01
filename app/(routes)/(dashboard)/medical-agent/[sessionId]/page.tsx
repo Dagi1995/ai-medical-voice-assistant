@@ -4,10 +4,16 @@ import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { doctorAgent } from "../../_components/DoctorAgentCard";
-import { Circle, Loader, PhoneCall, PhoneOff, Send, Mic, MicOff } from "lucide-react";
+import { Circle, Loader, PhoneCall, PhoneOff, Send, Mic, MicOff, Languages, Check, AlertCircle } from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export type SessionDetail = {
   id: number;
@@ -35,13 +41,39 @@ function MedicalVoiceAgent() {
   const [inputText, setInputText] = useState("");
   const [timer, setTimer] = useState(0);
   
-  // Refs for audio and recognition
+  const [sttLanguage, setSttLanguage] = useState<"am-ET" | "en-US" | "auto">("auto");
+  const [isRecording, setIsRecording] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  const [audioLevel, setAudioLevel] = useState(0);
+  
+  // Refs for audio, recognition, and recording
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const recognitionRef = useRef<any>(null);
+  const recognitionRef = useRef<any>(null); // Keeping for type safety if needed elsewhere
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const isComponentMounted = useRef(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const loadingRef = useRef(false); // Ref mirror of loading state for use inside closures
+  const locationRef = useRef<{lat: number, lng: number} | null>(null);
 
   useEffect(() => {
     if (sessionId) GetSessionDetails();
+    
+    // Request user location for nearby facilities feature
+    if (typeof window !== "undefined" && "geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          locationRef.current = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          };
+          console.log("Captured location for medical report:", locationRef.current);
+        },
+        (error) => {
+          console.warn("Geolocation denied or unavailable:", error.message);
+        }
+      );
+    }
   }, [sessionId]);
 
   useEffect(() => {
@@ -61,40 +93,150 @@ function MedicalVoiceAgent() {
     return () => clearInterval(interval);
   }, [isVoiceMode]);
 
-  // Setup Speech Recognition
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-      if (SpeechRecognition) {
-        const sr = new SpeechRecognition();
-        sr.continuous = true;
-        sr.interimResults = false;
-        sr.lang = "am-ET";
+  // Setup Audio Recording for STT
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      
+      // Volume Meter Setup
+      const audioContext = new AudioContext();
+      const source = audioContext.createMediaStreamSource(stream);
+      const analyser = audioContext.createAnalyser();
+      analyser.fftSize = 256;
+      source.connect(analyser);
+      const dataArray = new Uint8Array(analyser.frequencyBinCount);
+      
+      const updateLevel = () => {
+        if (!isComponentMounted.current) return;
+        analyser.getByteFrequencyData(dataArray);
+        const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
+        setAudioLevel(average);
+        if (isVoiceMode) requestAnimationFrame(updateLevel);
+        else setAudioLevel(0);
+      };
+      updateLevel();
 
-        sr.onstart = () => {
-          // INTERRUPTION: Stop AI if it's talking when user starts speaking
-          audioQueue.current = []; // Clear pending sentences
-          if (currentAudioRef.current) {
-            currentAudioRef.current.pause();
-            currentAudioRef.current = null;
-          }
-          isPlaying.current = false;
-          window.speechSynthesis.cancel(); // Also stop browser fallback
-          console.log("Interruption: AI stopped because user started speaking.");
-        };
+      // Select best supported mime type
+      const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus") 
+        ? "audio/webm;codecs=opus" 
+        : MediaRecorder.isTypeSupported("audio/webm") 
+          ? "audio/webm" 
+          : "audio/mp4";
 
-        sr.onresult = (event: any) => {
-          const transcript = event.results[event.results.length - 1][0].transcript;
-          if (transcript) {
-            handleSendMessage(transcript);
-          }
-        };
+      console.log("Starting recorder with mimeType:", mimeType);
+      const recorder = new MediaRecorder(stream, { mimeType });
+      mediaRecorderRef.current = recorder;
+      audioChunksRef.current = [];
 
-        sr.onerror = (e: any) => console.error("Speech Error", e);
-        recognitionRef.current = sr;
-      }
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunksRef.current.push(e.data);
+      };
+
+      recorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
+        console.log("Recording stopped. Blob size:", audioBlob.size);
+        
+        // Stop tracks AFTER blob is finalized
+        stream.getTracks().forEach(track => track.stop());
+        audioContext.close();
+
+        if (audioBlob.size > 500) { 
+          await handleTranscribe(audioBlob);
+        } else {
+          console.warn("Audio blob too small, skipping transcription.");
+        }
+        
+        // Use loadingRef (not loading state) to avoid stale closure issue
+        scheduleNextRecording();
+      };
+
+      recorder.start();
+      setIsRecording(true);
+
+      // Record in 5 second chunks
+      setTimeout(() => {
+        if (recorder.state === "recording") {
+          recorder.stop();
+          setIsRecording(false);
+        }
+      }, 5000);
+
+    } catch (err) {
+      console.error("Recording error:", err);
+      toast.error("Microphone access denied or error occurred.");
+      setIsVoiceMode(false);
     }
-  }, []);
+  };
+
+  const handleTranscribe = async (blob: Blob) => {
+    setIsTranscribing(true);
+    try {
+      const formData = new FormData();
+      formData.append("audio", blob);
+      
+      const res = await fetch("/api/stt", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (data.text && data.text.trim().length > 4) {
+        console.log("Detected Speech:", data.text);
+        // Show a temporary toast for user feedback
+        toast.success(`Heard: "${data.text}"`, { duration: 2000 });
+        
+        // INTERRUPTION logic
+        audioQueue.current = [];
+        if (currentAudioRef.current) {
+          currentAudioRef.current.pause();
+          currentAudioRef.current = null;
+        }
+        isPlaying.current = false;
+        if (typeof window !== "undefined" && window.speechSynthesis) {
+          window.speechSynthesis.cancel();
+        }
+
+        handleSendMessage(data.text);
+      } else if (data.error) {
+        console.warn("STT Error:", data.error);
+      }
+    } catch (err) {
+      console.error("STT API error:", err);
+    } finally {
+      setIsTranscribing(false);
+    }
+  };
+
+  // Helper to schedule the next recording cycle using refs (avoids stale closures)
+  const scheduleNextRecording = () => {
+    if (!isComponentMounted.current) return;
+    // Use refs to check actual current state
+    if (loadingRef.current || isPlaying.current) {
+      // AI is busy — poll every 2s until it's done
+      const pollId = setInterval(() => {
+        if (!isComponentMounted.current) { clearInterval(pollId); return; }
+        if (!loadingRef.current && !isPlaying.current) {
+          clearInterval(pollId);
+          startRecording();
+        }
+      }, 2000);
+    } else {
+      startRecording();
+    }
+  };
+
+  useEffect(() => {
+    isComponentMounted.current = true;
+    if (isVoiceMode) {
+      startRecording();
+    }
+    return () => {
+      isComponentMounted.current = false;
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
+        mediaRecorderRef.current.stop();
+      }
+    };
+  }, [isVoiceMode]);
 
   useEffect(() => {
     if (sessionDetail && messages.length === 0 && !loading) {
@@ -105,6 +247,7 @@ function MedicalVoiceAgent() {
   const handleGreeting = async () => {
     if (!sessionDetail) return;
     setLoading(true);
+    loadingRef.current = true;
     try {
       const response = await fetch("/api/chat", {
         method: "POST",
@@ -118,7 +261,8 @@ function MedicalVoiceAgent() {
       });
 
       if (!response.ok) {
-        toast.error("AI is busy, please try again.");
+        const errorData = await response.json().catch(() => ({}));
+        toast.error(errorData.error || "AI is currently unavailable. Please try again.");
         return;
       }
       if (!response.body) return;
@@ -182,6 +326,7 @@ function MedicalVoiceAgent() {
       console.error("Greeting failed:", error);
     } finally {
       setLoading(false);
+      loadingRef.current = false;
     }
   };
 
@@ -200,7 +345,9 @@ function MedicalVoiceAgent() {
         messages: messages.map(m => ({
           role: m.role === "assistant" || m.role === "model" ? "assistant" : "user",
           text: m.text
-        }))
+        })),
+        latitude: locationRef.current?.lat,
+        longitude: locationRef.current?.lng,
       });
 
       if (res.data.success) {
@@ -299,35 +446,33 @@ function MedicalVoiceAgent() {
     console.log(`Processing TTS [${langCode}]:`, cleanText.substring(0, 50));
 
     try {
-      // 1. Try Addis AI (Direct Client Call)
-      const response = await fetch("https://api.addisassistant.com/api/v1/audio", {
+      // Use Hasab AI TTS via our server route (keeps API key server-side)
+      const response = await fetch("/api/tts", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": process.env.NEXT_PUBLIC_ADDIS_API_KEY || ""
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           text: cleanText,
           language: langCode,
-          voice_id: sessionDetail?.selectedDoctor?.voiceId || (isAmharic ? "andrew" : "en-US-Neural2-F"),
-          stream: false
+          voiceId: sessionDetail?.selectedDoctor?.voiceId || (isAmharic ? "Selam" : "default"),
         })
       });
 
       if (response.ok) {
         const data = await response.json();
-        const audioData = data.audio || data.audio_base64 || data.data?.audio;
-        const audioUrl = data.audio_url || data.url;
-
-        if (audioData || audioUrl) {
-          const audioSrc = audioUrl || `data:audio/wav;base64,${audioData}`;
+        if (data.audio) {
+          const contentType = data.content_type || "audio/wav";
+          const audioSrc = `data:${contentType};base64,${data.audio}`;
           audioQueue.current.push({ type: "url", content: audioSrc });
           processAudioQueue();
           return; 
+        } else if (data.audio_url) {
+          audioQueue.current.push({ type: "url", content: data.audio_url });
+          processAudioQueue();
+          return;
         }
       }
     } catch (error: any) {
-      console.warn("Addis AI failed, queuing browser fallback:", error.message);
+      console.warn("TTS API failed, queuing browser fallback:", error.message);
     }
 
     // 2. Queue Browser Fallback (will play in sequence with others)
@@ -354,12 +499,13 @@ function MedicalVoiceAgent() {
   };
 
   const handleSendMessage = async (text: string) => {
-    if (!text.trim() || !sessionDetail) return;
+    if (!text.trim() || !sessionDetail || loading) return;
 
     const userMsg: Message = { role: "user", text };
     setMessages(prev => [...prev, userMsg]);
     setInputText("");
     setLoading(true);
+    loadingRef.current = true;
 
     try {
       const response = await fetch("/api/chat", {
@@ -375,6 +521,12 @@ function MedicalVoiceAgent() {
           }))
         })
       });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        toast.error(errorData.error || "Failed to get response");
+        return;
+      }
 
       if (!response.body) return;
       const reader = response.body.getReader();
@@ -399,6 +551,10 @@ function MedicalVoiceAgent() {
           if (!line.trim()) continue;
           try {
             const data = JSON.parse(line);
+            if (data.error) {
+              toast.error(data.error);
+              break;
+            }
             const textChunk = data.text || "";
             if (!textChunk) continue;
 
@@ -437,17 +593,19 @@ function MedicalVoiceAgent() {
       toast.error("Failed to get response");
     } finally {
       setLoading(false);
+      loadingRef.current = false;
     }
   };
 
   const toggleVoiceMode = () => {
     if (!isVoiceMode) {
       setIsVoiceMode(true);
-      recognitionRef.current?.start();
-      toast.success("Voice mode activated");
+      toast.success("Voice mode activated (Auto-Detecting Language)");
     } else {
       setIsVoiceMode(false);
-      recognitionRef.current?.stop();
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
+        mediaRecorderRef.current.stop();
+      }
       if (audioRef.current) {
         audioRef.current.pause();
       }
@@ -457,6 +615,7 @@ function MedicalVoiceAgent() {
 
   const endCall = async () => {
     setLoading(true);
+    loadingRef.current = true;
     if (recognitionRef.current) recognitionRef.current.stop();
     if (audioRef.current) audioRef.current.pause();
 
@@ -466,6 +625,8 @@ function MedicalVoiceAgent() {
         sessionDetail,
         sessionId,
         callDuration: formatTime(timer),
+        latitude: locationRef.current?.lat,
+        longitude: locationRef.current?.lng,
       });
       toast.success("Session ended and report generated");
       route.replace("/home");
@@ -473,6 +634,7 @@ function MedicalVoiceAgent() {
       toast.error("Failed to save report");
     } finally {
       setLoading(false);
+      loadingRef.current = false;
     }
   };
 
@@ -547,25 +709,53 @@ function MedicalVoiceAgent() {
         {/* Input Area */}
         <div className="p-6 bg-slate-50/50 dark:bg-white/5 border-t border-slate-100 dark:border-white/5">
           <div className="flex items-center gap-3">
-            <button 
-              onClick={toggleVoiceMode}
-              className={`p-4 rounded-2xl transition-all ${
-                isVoiceMode 
-                  ? "bg-rose-500 text-white shadow-lg shadow-rose-500/30" 
-                  : "bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:border-blue-500"
-              }`}
-            >
-              {isVoiceMode ? <Mic className="w-6 h-6 animate-pulse" /> : <MicOff className="w-6 h-6" />}
-            </button>
+            <div className="flex flex-col gap-2">
+              <button 
+                onClick={toggleVoiceMode}
+                className={`p-4 rounded-2xl transition-all relative ${
+                  isVoiceMode 
+                    ? "bg-rose-500 text-white shadow-lg shadow-rose-500/30" 
+                    : "bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:border-blue-500"
+                }`}
+              >
+                {isVoiceMode ? <Mic className="w-6 h-6 animate-pulse" /> : <MicOff className="w-6 h-6" />}
+                
+                {/* Visual Volume Meter Overlay */}
+                {isVoiceMode && (
+                  <div 
+                    className="absolute bottom-1 left-1/2 -translate-x-1/2 w-8 h-1 bg-white/30 rounded-full overflow-hidden"
+                  >
+                    <div 
+                      className="h-full bg-white transition-all duration-75"
+                      style={{ width: `${Math.min(audioLevel * 2, 100)}%` }}
+                    />
+                  </div>
+                )}
+              </button>
+              
+              <div className="flex items-center justify-center gap-1 text-[10px] font-bold text-slate-500">
+                <Languages className="w-3 h-3" />
+                AUTO
+              </div>
+            </div>
+
             <div className="flex-1 relative">
               <input 
                 type="text"
-                placeholder={isVoiceMode ? "Listening in Amharic..." : "Type your message..."}
+                placeholder={
+                  isTranscribing 
+                    ? "Transcribing your voice..." 
+                    : isVoiceMode 
+                      ? "Listening... (Auto-detecting AM/EN)" 
+                      : "Type your message..."
+                }
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSendMessage(inputText)}
                 disabled={isVoiceMode || loading}
-                className="w-full pl-6 pr-14 py-4 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-sm disabled:opacity-50"
+                className={`w-full pl-6 pr-14 py-4 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-sm disabled:opacity-50 ${
+                  isTranscribing ? "animate-pulse border-blue-400" : ""
+                }`}
               />
               <button 
                 disabled={loading || !inputText.trim()}
@@ -576,6 +766,7 @@ function MedicalVoiceAgent() {
               </button>
             </div>
           </div>
+          
           <p className="text-[10px] text-center mt-4 text-slate-400 uppercase tracking-widest font-semibold">
             SECURE ENCRYPTED MEDICAL SESSION
           </p>
