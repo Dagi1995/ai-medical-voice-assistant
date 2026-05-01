@@ -1,23 +1,20 @@
+import { db } from "../config/db";
+import { sessionsChatTable } from "../config/schema";
+import { desc } from "drizzle-orm";
 
-import "dotenv/config";
-import { db } from '../config/db';
-import { usersTable, sessionsChatTable, aiDoctorsTable } from '../config/schema';
-import { count, desc, sql } from 'drizzle-orm';
+async function main() {
+  const sessions = await db
+    .select()
+    .from(sessionsChatTable)
+    .orderBy(desc(sessionsChatTable.id))
+    .limit(1);
 
-async function inspect() {
-  const userCount = await db.select({ value: count() }).from(usersTable);
-  const doctorCount = await db.select({ value: count() }).from(aiDoctorsTable);
-  const sessionCount = await db.select({ value: count() }).from(sessionsChatTable);
-
-  console.log('User Count:', userCount[0].value);
-  console.log('Doctor Count:', doctorCount[0].value);
-  console.log('Session Count:', sessionCount[0].value);
-
-  const recentUsers = await db.select().from(usersTable).orderBy(desc(usersTable.id)).limit(5);
-  console.log('Recent Users:', JSON.stringify(recentUsers, null, 2));
-
-  const sessionsWithReports = await db.select().from(sessionsChatTable).where(sql`${sessionsChatTable.report} IS NOT NULL`).limit(5);
-  console.log('Sessions with Reports:', JSON.stringify(sessionsWithReports, null, 2));
+  if (sessions.length > 0) {
+    console.log("Latest Session ID:", sessions[0].sessionId);
+    console.log("Report:", JSON.stringify(sessions[0].report, null, 2));
+  } else {
+    console.log("No sessions found.");
+  }
 }
 
-inspect().catch(console.error);
+main().catch(console.error);

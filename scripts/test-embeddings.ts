@@ -6,12 +6,12 @@ async function listModels() {
   try {
     // Note: The SDK doesn't have a direct listModels, we usually check docs
     // but we can try to test a common one
-    console.log("Testing gemini-embedding-004...");
-    const model = genAI.getGenerativeModel({ model: "text-embedding-004" });
+    console.log("Testing gemini-embedding-2...");
+    const model = genAI.getGenerativeModel({ model: "gemini-embedding-2" });
     const result = await model.embedContent("test");
-    console.log("Success with text-embedding-004! Dimension:", result.embedding.values.length);
+    console.log("Success with gemini-embedding-2! Dimension:", result.embedding.values.length);
   } catch (error) {
-    console.error("Error with text-embedding-004:", error);
+    console.error("Error with gemini-embedding-2:", error);
     
     try {
       console.log("Testing embedding-001...");
