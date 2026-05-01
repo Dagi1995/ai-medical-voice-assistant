@@ -148,3 +148,76 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ error: "Failed to delete doctor" }, { status: 500 });
   }
 }
+export async function PUT(req: NextRequest) {
+  if (!(await isAdmin())) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
+    const formData = await req.formData();
+    const id = formData.get("id") as string;
+    const name = formData.get("name") as string;
+    const specialty = formData.get("specialty") as string;
+    const description = formData.get("description") as string;
+    const agentPrompt = formData.get("agentPrompt") as string;
+    const voiceId = formData.get("voiceId") as string;
+    const file = formData.get("knowledgeFile") as File | null;
+    const photoFile = formData.get("photoFile") as File | null;
+
+    if (!id) return NextResponse.json({ error: "ID required" }, { status: 400 });
+
+    const updateData: any = {
+      name,
+      specialty,
+      description,
+      agentPrompt,
+      voiceId,
+    };
+
+    // Handle photo upload if provided
+    if (photoFile) {
+      const buffer = Buffer.from(await photoFile.arrayBuffer());
+      const base64Image = buffer.toString("base64");
+      updateData.imageUrl = `data:${photoFile.type};base64,${base64Image}`;
+    }
+
+    if (file) {
+      updateData.hasRag = true;
+    }
+
+    // 1. Update Doctor entry
+    const doctorResult = await db
+      .update(aiDoctorsTable)
+      .set(updateData)
+      .where(eq(aiDoctorsTable.id, parseInt(id)))
+      .returning();
+
+    const updatedDoctor = doctorResult[0];
+
+    // 2. Process new knowledge file if provided (Replace old knowledge)
+    if (file && updatedDoctor) {
+      // Clear old knowledge
+      await db.delete(aiDoctorKnowledgeTable).where(eq(aiDoctorKnowledgeTable.doctorId, parseInt(id)));
+
+      const text = await file.text();
+      const chunks = text.match(/[\s\S]{1,1000}/g) || [];
+      const model = genAI.getGenerativeModel({ model: "gemini-embedding-001" });
+
+      for (const chunk of chunks) {
+        const result = await model.embedContent(chunk);
+        const embedding = result.embedding.values;
+
+        await db.insert(aiDoctorKnowledgeTable).values({
+          doctorId: updatedDoctor.id,
+          content: chunk,
+          embedding: embedding,
+        });
+      }
+    }
+
+    return NextResponse.json(updatedDoctor);
+  } catch (error) {
+    console.error("Failed to update AI doctor:", error);
+    return NextResponse.json({ error: "Failed to update AI doctor" }, { status: 500 });
+  }
+}

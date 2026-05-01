@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Plus, Search, MoreVertical, Trash2, User, FileText, Loader2, X, Pill, Upload } from "lucide-react";
+import { Plus, Search, MoreVertical, Trash2, User, FileText, Loader2, X, Pill, Upload, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
@@ -22,6 +22,8 @@ export default function AIDoctorsPage() {
     const [photoFile, setPhotoFile] = useState<File | null>(null);
     const [photoPreview, setPhotoPreview] = useState<string | null>(null);
     const [isCreating, setIsCreating] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
+    const [editId, setEditId] = useState<number | null>(null);
 
     const [selectedDoctor, setSelectedDoctor] = useState<any>(null);
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
@@ -66,11 +68,26 @@ export default function AIDoctorsPage() {
         }
     };
 
+    const handleEditDoctor = (doctor: any) => {
+        setEditId(doctor.id);
+        setIsEditing(true);
+        setName(doctor.name);
+        setSpecialty(doctor.specialty);
+        setDescription(doctor.description);
+        setAgentPrompt(doctor.agentPrompt);
+        setVoiceId(doctor.voiceId);
+        setPhotoPreview(doctor.imageUrl);
+        setIsModalOpen(true);
+    };
+
     const handleCreateDoctor = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsCreating(true);
 
         const formData = new FormData();
+        if (editId) {
+            formData.append("id", editId.toString());
+        }
         formData.append("name", name);
         formData.append("specialty", specialty);
         formData.append("description", description);
@@ -84,22 +101,23 @@ export default function AIDoctorsPage() {
         }
 
         try {
+            const method = editId ? "PUT" : "POST";
             const res = await fetch("/api/admin/ai-doctors", {
-                method: "POST",
+                method: method,
                 body: formData,
             });
 
             if (res.ok) {
-                toast.success("AI Doctor created successfully!");
+                toast.success(editId ? "AI Doctor updated successfully!" : "AI Doctor created successfully!");
                 setIsModalOpen(false);
                 resetForm();
                 fetchDoctors();
             } else {
                 const data = await res.json();
-                toast.error(data.error || "Failed to create doctor");
+                toast.error(data.error || `Failed to ${editId ? 'update' : 'create'} doctor`);
             }
         } catch (error) {
-            toast.error("An error occurred while creating doctor");
+            toast.error(`An error occurred while ${editId ? 'updating' : 'creating'} doctor`);
         } finally {
             setIsCreating(false);
         }
@@ -138,6 +156,8 @@ export default function AIDoctorsPage() {
         setKnowledgeFile(null);
         setPhotoFile(null);
         setPhotoPreview(null);
+        setIsEditing(false);
+        setEditId(null);
     };
 
     const filteredDoctors = doctors.filter(doc => 
@@ -163,7 +183,7 @@ export default function AIDoctorsPage() {
                             className="w-full md:w-64 pl-9 pr-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm placeholder:text-slate-400 dark:text-white transition-all"
                         />
                     </div>
-                    <Button onClick={() => setIsModalOpen(true)} className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/20 px-6">
+                    <Button onClick={() => { resetForm(); setIsModalOpen(true); }} className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/20 px-6">
                         <Plus className="w-4 h-4 mr-2" /> Create Doctor
                     </Button>
                 </div>
@@ -182,7 +202,13 @@ export default function AIDoctorsPage() {
                             animate={{ opacity: 1, scale: 1 }}
                             className="p-6 rounded-3xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-sm group hover:shadow-md transition-all relative overflow-hidden"
                         >
-                            <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
+                                <button 
+                                    onClick={() => handleEditDoctor(doctor)}
+                                    className="p-2 rounded-full bg-blue-50 dark:bg-blue-500/10 text-blue-600 hover:bg-blue-100 transition-colors"
+                                >
+                                    <Pencil className="w-4 h-4" />
+                                </button>
                                 <button 
                                     onClick={() => handleDeleteDoctor(doctor.id)}
                                     disabled={deletingId === doctor.id}
@@ -320,8 +346,8 @@ export default function AIDoctorsPage() {
                             className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-white/10 w-full max-w-2xl overflow-hidden"
                         >
                             <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-white/5">
-                                <h3 className="text-xl font-bold">Create New AI Doctor</h3>
-                                <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-full transition-colors">
+                                <h3 className="text-xl font-bold">{isEditing ? "Edit AI Doctor" : "Create New AI Doctor"}</h3>
+                                <button onClick={() => { setIsModalOpen(false); resetForm(); }} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-full transition-colors">
                                     <X className="w-5 h-5" />
                                 </button>
                             </div>
@@ -442,8 +468,8 @@ export default function AIDoctorsPage() {
                                         Cancel
                                     </Button>
                                     <Button type="submit" disabled={isCreating} className="flex-1 rounded-2xl py-6 bg-blue-600 hover:bg-blue-700 text-white">
-                                        {isCreating ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Plus className="w-5 h-5 mr-2" />}
-                                        Create AI Agent
+                                        {isCreating ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : (isEditing ? <Pencil className="w-5 h-5 mr-2" /> : <Plus className="w-5 h-5 mr-2" />)}
+                                        {isEditing ? "Update AI Agent" : "Create AI Agent"}
                                     </Button>
                                 </div>
                             </form>
